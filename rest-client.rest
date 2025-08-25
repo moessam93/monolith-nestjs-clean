@@ -1,0 +1,34 @@
+
+GET http://localhost:3000/beats/2
+
+###
+GET http://localhost:3000/beats
+
+###
+POST http://localhost:3000/beats
+Content-Type: application/json
+
+{
+    "name": "This is a new beat",
+    "price": 19.99,
+    "description": "A description of the new beat"
+}
+
+###
+PUT http://localhost:3000/beats/1
+Content-Type: application/json
+
+{
+    "price": 29.99
+}
+
+###
+PUT http://localhost:3000/beats/2
+Content-Type: application/json
+
+{
+    "name": "This is updated name"
+}
+
+###
+DELETE http://localhost:3000/beats/1
