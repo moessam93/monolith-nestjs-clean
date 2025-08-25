@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { BeatsController } from './beats.controller';
 import { BeatsService } from './beats.service';
+import { BeatsController } from './beats.controller';
 
 @Module({
-    controllers: [BeatsController],
-    providers: [BeatsService],
-    imports: [],
-    exports: [],
+  controllers: [BeatsController],
+  providers: [BeatsService],
 })
 export class BeatsModule {}

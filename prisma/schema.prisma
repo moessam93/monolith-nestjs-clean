@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Influencer {
+  id                Int      @id @default(autoincrement())
+  username          String   @unique
+  email             String   @unique
+  nameEn            String
+  nameAr            String
+  profilePictureUrl String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relationships
+  beats           Beat[]           // One influencer has many beats
+  socialPlatforms SocialPlatform[] // One influencer has many social platforms
+
+  @@map("influencers")
+}
+
+model Brand {
+  id         Int      @id @default(autoincrement())
+  nameEn     String
+  nameAr     String
+  logoUrl    String
+  websiteUrl String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relationships
+  beats      Beat[]   // One brand has many beats
+
+  @@map("brands")
+}
+
+model Beat {
+  id           Int      @id @default(autoincrement())
+  caption      String?
+  mediaUrl     String
+  thumbnailUrl String
+  statusKey    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Foreign Keys
+  influencerId Int
+  brandId      Int
+  
+  // Relationships
+  influencer   Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  brand        Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@map("beats")
+}
+
+model SocialPlatform {
+  id               Int      @id @default(autoincrement())
+  key              String   // instagram, tiktok, snapchat, youtube, facebook, twitter
+  url              String
+  numberOfFollowers Int     @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Foreign Key
+  influencerId     Int
+  
+  // Relationships
+  influencer       Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([influencerId, key]) // One platform type per influencer
+  @@map("social_platforms")
+}

@@ -1,47 +1,34 @@
-import { Controller, Delete, Get, Param, Post, Put, NotFoundException, Body, HttpException, HttpStatus } from "@nestjs/common";
-import type { Beat } from "./beats.service";
-import { BeatsService } from "./beats.service";
-import { CreateBeatDto } from "./dto/create-beat-dto";
-import { UpdateBeatDto } from "./dto/update-beat-dto";
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { BeatsService } from './beats.service';
+import { CreateBeatDto } from './dto/create-beat.dto';
+import { UpdateBeatDto } from './dto/update-beat.dto';
 
 @Controller('beats')
 export class BeatsController {
-    constructor(private beatsService: BeatsService) {}
-    @Get()
-    getBeats(): Beat[] {
-        try{
-            return this.beatsService.getAllBeats();
-        }
-        catch(err){
-            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+  constructor(private readonly beatsService: BeatsService) {}
 
-    @Get(':id')
-    getBeat(@Param('id') id:string): Beat {
-        const beat = this.beatsService.getBeatById(id);
-        if (!beat) {
-            throw new NotFoundException(`Beat with id ${id} not found`);
-        }
-        return beat;
-    }
+  @Post()
+  create(@Body() createBeatDto: CreateBeatDto) {
+    return this.beatsService.create(createBeatDto);
+  }
 
-    @Post()
-    createBeat(@Body() beat: CreateBeatDto): Beat {
-        return this.beatsService.createBeat(beat);
-    }
+  @Get()
+  findAll(@Query('search') search: string) {
+    return this.beatsService.findAll(search);
+  }
 
-    @Put(':id')
-    updateBeat(@Param('id') id:string, @Body() beat: UpdateBeatDto): Beat {
-        const updatedBeat = this.beatsService.updateBeat(id, beat);
-        if (!updatedBeat) {
-            throw new NotFoundException(`Beat with id ${id} not found`);
-        }
-        return updatedBeat;
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.beatsService.findOne(+id);
+  }
 
-    @Delete(':id')
-    deleteBeat(@Param('id') id:string): string {
-        return this.beatsService.deleteBeat(id) ? `Beat with id ${id} deleted` : `Beat with id ${id} not found`;
-    }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateBeatDto: UpdateBeatDto) {
+    return this.beatsService.update(+id, updateBeatDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.beatsService.remove(+id);
+  }
 }

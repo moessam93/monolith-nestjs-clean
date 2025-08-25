@@ -1,34 +1,409 @@
+### ===========================================
+### CROWDADS API - REST CLIENT TEST FILE
+### ===========================================
 
-GET http://localhost:3000/beats/2
+### ===========================================
+### INFLUENCERS ENDPOINTS
+### ===========================================
 
-###
-GET http://localhost:3000/beats
+### Get all influencers
+GET http://localhost:3000/api/influencers
 
-###
-POST http://localhost:3000/beats
+### Get influencer by ID (with relationships)
+GET http://localhost:3000/api/influencers/1
+
+### Create new influencer with social platforms
+POST http://localhost:3000/api/influencers
 Content-Type: application/json
 
 {
-    "name": "This is a new beat",
-    "price": 19.99,
-    "description": "A description of the new beat"
+  "username": "johndoe",
+  "email": "john@example.com",
+  "nameEn": "John Doe",
+  "nameAr": "جون دو",
+  "profilePictureUrl": "https://example.com/profiles/johndoe.jpg",
+  "socialPlatforms": [
+    {
+      "key": "instagram",
+      "url": "https://instagram.com/johndoe",
+      "numberOfFollowers": 50000
+    },
+    {
+      "key": "tiktok",
+      "url": "https://tiktok.com/@johndoe",
+      "numberOfFollowers": 25000
+    },
+    {
+      "key": "youtube",
+      "url": "https://youtube.com/johndoe",
+      "numberOfFollowers": 10000
+    }
+  ]
 }
 
-###
-PUT http://localhost:3000/beats/1
+### Create another influencer
+POST http://localhost:3000/api/influencers
 Content-Type: application/json
 
 {
-    "price": 29.99
+  "username": "sarasmith",
+  "email": "sara@example.com",
+  "nameEn": "Sara Smith",
+  "nameAr": "سارة سميث",
+  "profilePictureUrl": "https://example.com/profiles/sarasmith.jpg",
+  "socialPlatforms": [
+    {
+      "key": "instagram",
+      "url": "https://instagram.com/sarasmith",
+      "numberOfFollowers": 75000
+    },
+    {
+      "key": "snapchat",
+      "url": "https://snapchat.com/add/sarasmith",
+      "numberOfFollowers": 30000
+    }
+  ]
 }
 
-###
-PUT http://localhost:3000/beats/2
+### Update influencer (replace social platforms)
+PATCH http://localhost:3000/api/influencers/1
 Content-Type: application/json
 
 {
-    "name": "This is updated name"
+  "nameEn": "John Doe Updated",
+  "socialPlatforms": [
+    {
+      "key": "instagram",
+      "url": "https://instagram.com/johndoe_official",
+      "numberOfFollowers": 75000
+    },
+    {
+      "key": "youtube",
+      "url": "https://youtube.com/johndoe_official",
+      "numberOfFollowers": 15000
+    },
+    {
+      "key": "twitter",
+      "url": "https://twitter.com/johndoe",
+      "numberOfFollowers": 5000
+    }
+  ]
 }
 
-###
-DELETE http://localhost:3000/beats/1
+### Update only influencer info (keep existing social platforms)
+PATCH http://localhost:3000/api/influencers/2
+Content-Type: application/json
+
+{
+  "nameEn": "Sara Smith Pro",
+  "nameAr": "سارة سميث المحترفة"
+}
+
+### Delete influencer (cascades to social platforms and beats)
+DELETE http://localhost:3000/api/influencers/1
+
+### ===========================================
+### BRANDS ENDPOINTS
+### ===========================================
+
+### Get all brands
+GET http://localhost:3000/api/brands
+
+### Get brand by ID (with relationships)
+GET http://localhost:3000/api/brands/1
+
+### Create new brand
+POST http://localhost:3000/api/brands
+Content-Type: application/json
+
+{
+  "nameEn": "TechCorp",
+  "nameAr": "تك كورب",
+  "logoUrl": "https://example.com/logos/techcorp.png",
+  "websiteUrl": "https://techcorp.com"
+}
+
+### Create another brand
+POST http://localhost:3000/api/brands
+Content-Type: application/json
+
+{
+  "nameEn": "Fashion Forward",
+  "nameAr": "أزياء متقدمة",
+  "logoUrl": "https://example.com/logos/fashionforward.png",
+  "websiteUrl": "https://fashionforward.com"
+}
+
+### Create tech brand
+POST http://localhost:3000/api/brands
+Content-Type: application/json
+
+{
+  "nameEn": "GreenTech Solutions",
+  "nameAr": "حلول التكنولوجيا الخضراء",
+  "logoUrl": "https://example.com/logos/greentech.png",
+  "websiteUrl": "https://greentech-solutions.com"
+}
+
+### Update brand
+PATCH http://localhost:3000/api/brands/1
+Content-Type: application/json
+
+{
+  "nameEn": "TechCorp International",
+  "websiteUrl": "https://techcorp-intl.com"
+}
+
+### Delete brand (cascades to beats)
+DELETE http://localhost:3000/api/brands/1
+
+### ===========================================
+### BEATS ENDPOINTS
+### ===========================================
+
+### Get all beats
+GET http://localhost:3000/api/beats
+
+### Search beats by caption or status
+GET http://localhost:3000/api/beats?search=campaign
+
+### Get beat by ID (with relationships)
+GET http://localhost:3000/api/beats/1
+
+### Create new beat
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "caption": "Amazing summer campaign with the latest tech products! 🌟",
+  "mediaUrl": "https://example.com/media/summer-campaign.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/summer-campaign.jpg",
+  "statusKey": "published",
+  "influencerId": 1,
+  "brandId": 1
+}
+
+### Create another beat
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "caption": "Fashion week highlights - exclusive behind the scenes! ✨",
+  "mediaUrl": "https://example.com/media/fashion-week.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/fashion-week.jpg",
+  "statusKey": "published",
+  "influencerId": 2,
+  "brandId": 2
+}
+
+### Create draft beat
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "caption": "Upcoming product launch teaser",
+  "mediaUrl": "https://example.com/media/product-teaser.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/product-teaser.jpg",
+  "statusKey": "draft",
+  "influencerId": 1,
+  "brandId": 3
+}
+
+### Create beat without caption
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "mediaUrl": "https://example.com/media/minimal-beat.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/minimal-beat.jpg",
+  "statusKey": "review",
+  "influencerId": 2,
+  "brandId": 1
+}
+
+### Update beat
+PATCH http://localhost:3000/api/beats/1
+Content-Type: application/json
+
+{
+  "caption": "Updated summer campaign with amazing results! 🔥",
+  "statusKey": "featured"
+}
+
+### Update beat status only
+PATCH http://localhost:3000/api/beats/2
+Content-Type: application/json
+
+{
+  "statusKey": "archived"
+}
+
+### Delete beat
+DELETE http://localhost:3000/api/beats/1
+
+### ===========================================
+### COMPLEX RELATIONSHIP QUERIES
+### ===========================================
+
+### Get all influencers with their beats and social platforms
+GET http://localhost:3000/api/influencers
+
+### Get all brands with their beats (and beat influencers)
+GET http://localhost:3000/api/brands
+
+### Get specific influencer with full relationships
+GET http://localhost:3000/api/influencers/1
+
+### Get specific brand with full relationships  
+GET http://localhost:3000/api/brands/1
+
+### ===========================================
+### ERROR TESTING
+### ===========================================
+
+### Test validation errors - missing required fields
+POST http://localhost:3000/api/influencers
+Content-Type: application/json
+
+{
+  "username": "testuser"
+  // Missing required fields: email, nameEn, nameAr, profilePictureUrl
+}
+
+### Test validation errors - invalid email
+POST http://localhost:3000/api/api/influencers
+Content-Type: application/json
+
+{
+  "username": "testuser2",
+  "email": "invalid-email",
+  "nameEn": "Test User",
+  "nameAr": "مستخدم تجريبي",
+  "profilePictureUrl": "https://example.com/test.jpg"
+}
+
+### Test validation errors - invalid URL
+POST http://localhost:3000/api/brands
+Content-Type: application/json
+
+{
+  "nameEn": "Test Brand",
+  "nameAr": "علامة تجارية تجريبية",
+  "logoUrl": "invalid-url",
+  "websiteUrl": "https://valid-url.com"
+}
+
+### Test validation errors - invalid social platform key
+POST http://localhost:3000/api/influencers
+Content-Type: application/json
+
+{
+  "username": "testuser3",
+  "email": "test3@example.com",
+  "nameEn": "Test User 3",
+  "nameAr": "مستخدم تجريبي 3",
+  "profilePictureUrl": "https://example.com/test3.jpg",
+  "socialPlatforms": [
+    {
+      "key": "invalid-platform",
+      "url": "https://example.com/profile",
+      "numberOfFollowers": 1000
+    }
+  ]
+}
+
+### Test foreign key constraint - non-existent influencer
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "caption": "Test beat with invalid influencer",
+  "mediaUrl": "https://example.com/media/test.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/test.jpg",
+  "statusKey": "draft",
+  "influencerId": 999,
+  "brandId": 1
+}
+
+### Test foreign key constraint - non-existent brand
+POST http://localhost:3000/api/beats
+Content-Type: application/json
+
+{
+  "caption": "Test beat with invalid brand",
+  "mediaUrl": "https://example.com/media/test.mp4",
+  "thumbnailUrl": "https://example.com/thumbnails/test.jpg",
+  "statusKey": "draft",
+  "influencerId": 1,
+  "brandId": 999
+}
+
+### ===========================================
+### BULK DATA CREATION FOR TESTING
+### ===========================================
+
+### Create multiple influencers for testing
+POST http://localhost:3000/api/influencers
+Content-Type: application/json
+
+{
+  "username": "alextech",
+  "email": "alex@techworld.com",
+  "nameEn": "Alex Johnson",
+  "nameAr": "أليكس جونسون",
+  "profilePictureUrl": "https://example.com/profiles/alex.jpg",
+  "socialPlatforms": [
+    {
+      "key": "youtube",
+      "url": "https://youtube.com/alextech",
+      "numberOfFollowers": 100000
+    },
+    {
+      "key": "twitter",
+      "url": "https://twitter.com/alextech",
+      "numberOfFollowers": 25000
+    }
+  ]
+}
+
+### Create gaming influencer
+PUT http://localhost:3000/api/influencers/1
+Content-Type: application/json
+
+{
+  "username": "gamerpro",
+  "email": "gamer@proplay.com",
+  "nameEn": "GameMaster Pro",
+  "nameAr": "محترف الألعاب",
+  "profilePictureUrl": "https://example.com/profiles/gamer.jpg",
+  "socialPlatforms": [
+    {
+      "key": "tiktok",
+      "url": "https://tiktok.com/@gamerpro",
+      "numberOfFollowers": 200000
+    },
+    {
+      "key": "youtube",
+      "url": "https://youtube.com/gamemaster",
+      "numberOfFollowers": 50000
+    },
+    {
+      "key": "instagram",
+      "url": "https://instagram.com/gamerpro",
+      "numberOfFollowers": 75000
+    }
+  ]
+}
+
+### ===========================================
+### SEARCH AND FILTER TESTING
+### ===========================================
+
+### Search beats by caption
+GET http://localhost:3000/api/beats?search=summer
+
+### Search beats by status
+GET http://localhost:3000/api/beats?search=published
+
+### Search beats by partial status
+GET http://localhost:3000/api/beats?search=draft
