@@ -1,5 +1,14 @@
 const { PrismaClient } = require('@prisma/client');
 
+const env = process.argv[2] || 'development';
+const envFile = `.env.${env}`;
+
+// Load the specific environment file
+require('dotenv').config({ path: envFile });
+
+console.log(`🔍 Validating Prisma setup for ${env} environment...`);
+console.log(`📁 Using environment file: ${envFile}`);
+
 const prisma = new PrismaClient();
 
 async function validateSetup() {
