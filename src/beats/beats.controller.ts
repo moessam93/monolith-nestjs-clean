@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe 
 import { BeatsService } from './beats.service';
 import { CreateBeatDto } from './dto/create-beat.dto';
 import { UpdateBeatDto } from './dto/update-beat.dto';
+import { FindAllBeatsResponseDto } from './dto/find-all-beats-response.dto';
+import { FindOneBeatResponseDto } from './dto/find-one-beat-response.dto';
 
 @Controller('beats')
 export class BeatsController {
@@ -13,12 +15,12 @@ export class BeatsController {
   }
 
   @Get()
-  findAll(@Query('search') search: string) {
-    return this.beatsService.findAll(search);
+  findAll(@Query('search') search: string, @Query('page', ParseIntPipe) page: number = 1, @Query('limit', ParseIntPipe) limit: number = 10): Promise<FindAllBeatsResponseDto> {
+    return this.beatsService.findAll(search, page, limit);
   }
 
   @Get(':id')
-  findOne(@Param('id',ParseIntPipe) id: number) {
+  findOne(@Param('id',ParseIntPipe) id: number): Promise<FindOneBeatResponseDto | null> {
     return this.beatsService.findOne(id);
   }
 

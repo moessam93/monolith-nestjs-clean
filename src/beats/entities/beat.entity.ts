@@ -3,7 +3,7 @@ import { Brand } from '../../brands/entities/brand.entity';
 
 export class Beat {
   id: number;
-  caption?: string;
+  caption: string | null;
   mediaUrl: string;
   thumbnailUrl: string;
   statusKey: string;

@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
 import { BrandsService } from './brands.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
+import { FindAllBrandsResponseDto } from './dto/find-all-brands-response.dto';
+import { FindOneBrandResponseDto } from './dto/find-one-brand-response.dto';
 
 @Controller('brands')
 export class BrandsController {
@@ -13,12 +15,12 @@ export class BrandsController {
   }
 
   @Get()
-  findAll() {
-    return this.brandsService.findAll();
+  findAll(@Query('search') search: string, @Query('page', ParseIntPipe) page: number = 1, @Query('limit', ParseIntPipe) limit: number = 10): Promise<FindAllBrandsResponseDto> {
+    return this.brandsService.findAll(search, page, limit);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<FindOneBrandResponseDto | null> {
     return this.brandsService.findOne(id);
   }
 
