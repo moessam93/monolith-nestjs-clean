@@ -6,10 +6,25 @@
 ### INFLUENCERS ENDPOINTS
 ### ===========================================
 
-### Get all influencers
+### Get all influencers (with pagination)
 GET http://localhost:3000/api/influencers
 
-### Get influencer by ID (with relationships)
+### Get all influencers with pagination
+GET http://localhost:3000/api/influencers?page=1&limit=5
+
+### Search influencers by username
+GET http://localhost:3000/api/influencers?search=john
+
+### Search influencers by name (English)
+GET http://localhost:3000/api/influencers?search=sara
+
+### Search influencers by email
+GET http://localhost:3000/api/influencers?search=example.com
+
+### Search with pagination
+GET http://localhost:3000/api/influencers?search=tech&page=1&limit=3
+
+### Get influencer by ID (with relationships and social platforms)
 GET http://localhost:3000/api/influencers/1
 
 ### Create new influencer with social platforms
@@ -106,10 +121,22 @@ DELETE http://localhost:3000/api/influencers/1
 ### BRANDS ENDPOINTS
 ### ===========================================
 
-### Get all brands
+### Get all brands (with pagination)
 GET http://localhost:3000/api/brands
 
-### Get brand by ID (with relationships)
+### Get all brands with pagination
+GET http://localhost:3000/api/brands?page=1&limit=5
+
+### Search brands by English name
+GET http://localhost:3000/api/brands?search=tech
+
+### Search brands by Arabic name
+GET http://localhost:3000/api/brands?search=تك
+
+### Search with pagination
+GET http://localhost:3000/api/brands?search=fashion&page=1&limit=2
+
+### Get brand by ID (with relationships and beats)
 GET http://localhost:3000/api/brands/1
 
 ### Create new brand
@@ -161,13 +188,22 @@ DELETE http://localhost:3000/api/brands/1
 ### BEATS ENDPOINTS
 ### ===========================================
 
-### Get all beats
+### Get all beats (with pagination)
 GET http://localhost:3000/api/beats
 
-### Search beats by caption or status
+### Get all beats with pagination
+GET http://localhost:3000/api/beats?page=1&limit=5
+
+### Search beats by caption
 GET http://localhost:3000/api/beats?search=campaign
 
-### Get beat by ID (with relationships)
+### Search beats by caption (case insensitive)
+GET http://localhost:3000/api/beats?search=summer
+
+### Search with pagination
+GET http://localhost:3000/api/beats?search=fashion&page=1&limit=3
+
+### Get beat by ID (with relationships - influencer and brand)
 GET http://localhost:3000/api/beats/1
 
 ### Create new beat
@@ -242,14 +278,39 @@ Content-Type: application/json
 DELETE http://localhost:3000/api/beats/1
 
 ### ===========================================
+### ADVANCED PAGINATION AND SEARCH QUERIES
+### ===========================================
+
+### Test large page numbers
+GET http://localhost:3000/api/beats?page=5&limit=2
+
+### Test different page sizes
+GET http://localhost:3000/api/influencers?page=1&limit=20
+
+### Test edge cases - page 0 (should default to 1)
+GET http://localhost:3000/api/brands?page=0&limit=5
+
+### Test negative page (should default to 1)
+GET http://localhost:3000/api/beats?page=-1&limit=5
+
+### Test very large limit
+GET http://localhost:3000/api/influencers?page=1&limit=100
+
+### Search with no results
+GET http://localhost:3000/api/beats?search=nonexistentterm
+
+### Empty search (should return all with pagination)
+GET http://localhost:3000/api/influencers?search=&page=1&limit=3
+
+### ===========================================
 ### COMPLEX RELATIONSHIP QUERIES
 ### ===========================================
 
-### Get all influencers with their beats and social platforms
-GET http://localhost:3000/api/influencers
+### Get all influencers with social platforms (paginated)
+GET http://localhost:3000/api/influencers?page=1&limit=10
 
-### Get all brands with their beats (and beat influencers)
-GET http://localhost:3000/api/brands
+### Get all brands with their beats (paginated)
+GET http://localhost:3000/api/brands?page=1&limit=10
 
 ### Get specific influencer with full relationships
 GET http://localhost:3000/api/influencers/1
@@ -271,7 +332,7 @@ Content-Type: application/json
 }
 
 ### Test validation errors - invalid email
-POST http://localhost:3000/api/api/influencers
+POST http://localhost:3000/api/influencers
 Content-Type: application/json
 
 {
@@ -367,7 +428,7 @@ Content-Type: application/json
 }
 
 ### Create gaming influencer
-PUT http://localhost:3000/api/influencers/1
+POST http://localhost:3000/api/influencers
 Content-Type: application/json
 
 {
@@ -396,14 +457,102 @@ Content-Type: application/json
 }
 
 ### ===========================================
-### SEARCH AND FILTER TESTING
+### COMPREHENSIVE SEARCH AND FILTER TESTING
 ### ===========================================
 
+### BEATS SEARCH TESTS
 ### Search beats by caption
 GET http://localhost:3000/api/beats?search=summer
 
-### Search beats by status
-GET http://localhost:3000/api/beats?search=published
+### Search beats with pagination
+GET http://localhost:3000/api/beats?search=campaign&page=1&limit=2
 
-### Search beats by partial status
-GET http://localhost:3000/api/beats?search=draft
+### Search beats case insensitive
+GET http://localhost:3000/api/beats?search=FASHION
+
+### INFLUENCERS SEARCH TESTS
+### Search influencers by username
+GET http://localhost:3000/api/influencers?search=john
+
+### Search influencers by English name
+GET http://localhost:3000/api/influencers?search=smith
+
+### Search influencers by Arabic name
+GET http://localhost:3000/api/influencers?search=سارة
+
+### Search influencers by email domain
+GET http://localhost:3000/api/influencers?search=example.com
+
+### Search influencers with pagination
+GET http://localhost:3000/api/influencers?search=pro&page=1&limit=2
+
+### BRANDS SEARCH TESTS
+### Search brands by English name
+GET http://localhost:3000/api/brands?search=tech
+
+### Search brands by Arabic name
+GET http://localhost:3000/api/brands?search=حلول
+
+### Search brands case insensitive
+GET http://localhost:3000/api/brands?search=FASHION
+
+### Search brands with pagination
+GET http://localhost:3000/api/brands?search=corp&page=1&limit=1
+
+### COMBINED SEARCH AND PAGINATION TESTS
+### Test pagination metadata with different scenarios
+GET http://localhost:3000/api/beats?page=2&limit=2
+
+### Test total vs filtered counts
+GET http://localhost:3000/api/influencers?search=nonexistent&page=1&limit=5
+
+### Test hasNextPage and hasPreviousPage flags
+GET http://localhost:3000/api/brands?page=1&limit=1
+
+### ===========================================
+### RESPONSE STRUCTURE EXAMPLES
+### ===========================================
+### The following requests demonstrate the new standardized response structure
+### with pagination metadata across all domains
+
+### Example: Beats findAll response structure
+### Expected Response:
+### {
+###   "data": [
+###     {
+###       "id": 1,
+###       "caption": "Sample beat caption",
+###       "mediaUrl": "https://example.com/media.mp4",
+###       "thumbnailUrl": "https://example.com/thumb.jpg",
+###       "statusKey": "active",
+###       "createdAt": "2024-01-01T00:00:00.000Z",
+###       "updatedAt": "2024-01-01T00:00:00.000Z",
+###       "influencer": { "id": 1, "username": "...", ... },
+###       "brand": { "id": 1, "nameEn": "...", ... }
+###     }
+###   ],
+###   "meta": {
+###     "page": 1,
+###     "limit": 10,
+###     "totalItems": 50,
+###     "totalFiltered": 25,
+###     "totalPages": 3,
+###     "hasNextPage": true,
+###     "hasPreviousPage": false
+###   }
+### }
+GET http://localhost:3000/api/beats?page=1&limit=2
+
+### Example: Influencers findAll response structure  
+### Expected Response: Similar structure with influencer data and socialPlatforms
+GET http://localhost:3000/api/influencers?page=1&limit=2
+
+### Example: Brands findAll response structure
+### Expected Response: Similar structure with brand data and beats relation
+GET http://localhost:3000/api/brands?page=1&limit=2
+
+### Example: findOne responses (no pagination, just structured data)
+### Expected Response: Single entity with relations, no meta object
+GET http://localhost:3000/api/beats/1
+GET http://localhost:3000/api/influencers/1  
+GET http://localhost:3000/api/brands/1

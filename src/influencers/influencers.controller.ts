@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
 import { InfluencersService } from './influencers.service';
 import { CreateInfluencerDto } from './dto/create-influencer.dto';
 import { UpdateInfluencerDto } from './dto/update-influencer.dto';
+import { FindAllInfluencersResponseDto } from './dto/find-all-influencers-response.dto';
+import { FindOneInfluencerResponseDto } from './dto/find-one-influencer-response.dto';
 
 @Controller('influencers')
 export class InfluencersController {
@@ -13,12 +15,12 @@ export class InfluencersController {
   }
 
   @Get()
-  findAll() {
-    return this.influencersService.findAll();
+  findAll(@Query('search') search: string, @Query('page', ParseIntPipe) page: number = 1, @Query('limit', ParseIntPipe) limit: number = 10): Promise<FindAllInfluencersResponseDto> {
+    return this.influencersService.findAll(search, page, limit);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<FindOneInfluencerResponseDto | null> {
     return this.influencersService.findOne(id);
   }
 
