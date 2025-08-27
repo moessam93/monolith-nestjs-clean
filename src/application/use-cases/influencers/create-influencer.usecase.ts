@@ -4,6 +4,7 @@ import { CreateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dt
 import { Result, ok, err } from '../../common/result';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
+import { ExistingSocialPlatformForInfluencerError, InfluencerUsernameAlreadyExistsError} from '../../../domain/errors/influencer-errors';
 
 export class CreateInfluencerUseCase {
   constructor(
@@ -11,19 +12,13 @@ export class CreateInfluencerUseCase {
     private readonly socialPlatformsRepo: ISocialPlatformsRepo,
   ) {}
 
-  async execute(input: CreateInfluencerInput): Promise<Result<InfluencerOutput, Error>> {
+  async execute(input: CreateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerUsernameAlreadyExistsError | ExistingSocialPlatformForInfluencerError>> {
     const { username, email, nameEn, nameAr, profilePictureUrl, socialPlatforms = [] } = input;
 
     // Check if username already exists
     const existingByUsername = await this.influencersRepo.findByUsername(username);
     if (existingByUsername) {
-      return err(new Error(`Influencer with username '${username}' already exists`));
-    }
-
-    // Check if email already exists
-    const existingByEmail = await this.influencersRepo.findByEmail(email);
-    if (existingByEmail) {
-      return err(new Error(`Influencer with email '${email}' already exists`));
+      return err(new InfluencerUsernameAlreadyExistsError(username));
     }
 
     // Create influencer entity
@@ -41,6 +36,14 @@ export class CreateInfluencerUseCase {
 
     // Save influencer
     const createdInfluencer = await this.influencersRepo.create(influencer);
+
+    // Check if social platforms already exist for this influencer
+    for (const spInput of socialPlatforms) {
+      const existingSocialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(createdInfluencer.id, spInput.key);
+      if (existingSocialPlatform) {
+        return err(new ExistingSocialPlatformForInfluencerError(createdInfluencer.id, spInput.key, spInput.url));
+      }
+    }
 
     // Create social platforms if provided
     const createdSocialPlatforms: SocialPlatform[] = [];

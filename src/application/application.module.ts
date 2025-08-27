@@ -7,7 +7,6 @@ import { LoginUseCase } from './use-cases/auth/login.usecase';
 import { ValidateUserUseCase } from './use-cases/auth/validate-user.usecase';
 
 // Use Cases - Users
-import { BootstrapFirstSuperAdminUseCase } from './use-cases/users/bootstrap-first-superadmin.usecase';
 import { CreateUserUseCase } from './use-cases/users/create-user.usecase';
 import { ListUsersUseCase } from './use-cases/users/list-users.usecase';
 import { UpdateUserUseCase } from './use-cases/users/update-user.usecase';
@@ -53,12 +52,6 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     
     // User Use Cases
     {
-      provide: TOKENS.BootstrapFirstSuperAdminUseCase,
-      useFactory: (unitOfWork: any, passwordHasher: any) =>
-        new BootstrapFirstSuperAdminUseCase(unitOfWork, passwordHasher),
-      inject: [TOKENS.UnitOfWork, TOKENS.PasswordHasher],
-    },
-    {
       provide: TOKENS.CreateUserUseCase,
       useFactory: (unitOfWork: any, passwordHasher: any) =>
         new CreateUserUseCase(unitOfWork, passwordHasher),
@@ -66,13 +59,13 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.ListUsersUseCase,
-      useFactory: (usersRepo: any) => new ListUsersUseCase(usersRepo),
-      inject: [TOKENS.UsersRepo],
+      useFactory: (usersRepo: any, rolesRepo: any) => new ListUsersUseCase(usersRepo, rolesRepo),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
     },
     {
       provide: TOKENS.UpdateUserUseCase,
-      useFactory: (usersRepo: any) => new UpdateUserUseCase(usersRepo),
-      inject: [TOKENS.UsersRepo],
+      useFactory: (usersRepo: any, rolesRepo: any) => new UpdateUserUseCase(usersRepo, rolesRepo),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
     },
     {
       provide: TOKENS.AssignRolesUseCase,
@@ -100,8 +93,9 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.UpdateBeatUseCase,
-      useFactory: (beatsRepo: any) => new UpdateBeatUseCase(beatsRepo),
-      inject: [TOKENS.BeatsRepo],
+      useFactory: (beatsRepo: any, influencersRepo: any, brandsRepo: any) =>
+        new UpdateBeatUseCase(beatsRepo, influencersRepo, brandsRepo),
+      inject: [TOKENS.BeatsRepo, TOKENS.InfluencersRepo, TOKENS.BrandsRepo],
     },
     {
       provide: TOKENS.DeleteBeatUseCase,
@@ -176,7 +170,6 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     TOKENS.ValidateUserUseCase,
     
     // Users
-    TOKENS.BootstrapFirstSuperAdminUseCase,
     TOKENS.CreateUserUseCase,
     TOKENS.ListUsersUseCase,
     TOKENS.UpdateUserUseCase,

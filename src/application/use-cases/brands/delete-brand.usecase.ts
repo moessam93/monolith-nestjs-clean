@@ -1,3 +1,4 @@
+import { BrandNotFoundError } from 'src/domain/errors/brand-errors';
 import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { Result, ok, err } from '../../common/result';
 
@@ -6,11 +7,11 @@ export class DeleteBrandUseCase {
     private readonly brandsRepo: IBrandsRepo,
   ) {}
 
-  async execute(id: number): Promise<Result<void, Error>> {
+  async execute(id: number): Promise<Result<void, BrandNotFoundError>> {
     // Check if brand exists
     const brand = await this.brandsRepo.findById(id);
     if (!brand) {
-      return err(new Error(`Brand not found with ID: ${id}`));
+      return err(new BrandNotFoundError(id));
     }
 
     // Delete brand

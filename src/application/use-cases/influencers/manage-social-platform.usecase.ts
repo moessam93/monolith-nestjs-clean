@@ -3,6 +3,7 @@ import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platfo
 import { UpdateSocialPlatformInput, SocialPlatformOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
+import { ExistingSocialPlatformForInfluencerError, InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 
 export class ManageSocialPlatformUseCase {
   constructor(
@@ -10,13 +11,13 @@ export class ManageSocialPlatformUseCase {
     private readonly socialPlatformsRepo: ISocialPlatformsRepo,
   ) {}
 
-  async addOrUpdate(input: UpdateSocialPlatformInput): Promise<Result<SocialPlatformOutput, Error>> {
+  async addOrUpdate(input: UpdateSocialPlatformInput): Promise<Result<SocialPlatformOutput, InfluencerNotFoundError | ExistingSocialPlatformForInfluencerError>> {
     const { influencerId, key, url, numberOfFollowers } = input;
 
     // Check if influencer exists
     const influencer = await this.influencersRepo.findById(influencerId);
     if (!influencer) {
-      return err(new Error(`Influencer not found with ID: ${influencerId}`));
+      return err(new InfluencerNotFoundError(influencerId));
     }
 
     // Check if social platform already exists for this influencer
@@ -39,7 +40,7 @@ export class ManageSocialPlatformUseCase {
     } else {
       // Create new
       if (!url || numberOfFollowers === undefined) {
-        return err(new Error('URL and numberOfFollowers are required for new social platform'));
+        return err(new ExistingSocialPlatformForInfluencerError(influencerId, key, url || ''));
       }
 
       const socialPlatform = new SocialPlatform(

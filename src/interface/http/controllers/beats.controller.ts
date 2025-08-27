@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   Inject,
+  BadRequestException,
+  HttpStatus,
 } from '@nestjs/common';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 
@@ -17,7 +19,7 @@ import { ListBeatsUseCase } from '../../../application/use-cases/beats/list-beat
 import { GetBeatUseCase } from '../../../application/use-cases/beats/get-beat.usecase';
 import { UpdateBeatUseCase } from '../../../application/use-cases/beats/update-beat.usecase';
 import { DeleteBeatUseCase } from '../../../application/use-cases/beats/delete-beat.usecase';
-
+import { BEAT_INFLUENCER_NOT_FOUND, BEAT_BRAND_NOT_FOUND, BEAT_NOT_FOUND } from '../../../domain/errors/beat-errors';
 // DTOs
 import {
   CreateBeatInput,
@@ -30,8 +32,8 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateBeatDto, UpdateBeatDto } from '../validation/beat.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { ROLES } from 'src/common/constants/roles';
+import { Roles } from 'src/interface/decorators/roles.decorator';
+import { ROLES } from 'src/interface/constants/roles';
 
 @Controller('beats')
 export class BeatsController {
@@ -46,9 +48,9 @@ export class BeatsController {
     private readonly updateBeatUseCase: UpdateBeatUseCase,
     @Inject(TOKENS.DeleteBeatUseCase)
     private readonly deleteBeatUseCase: DeleteBeatUseCase,
-  ) {}
+  ) { }
 
-  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
+  @Roles(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.EXECUTIVE)
   @Post()
   async create(@Body() createBeatDto: CreateBeatDto): Promise<BeatOutput> {
     const input: CreateBeatInput = {
@@ -64,10 +66,33 @@ export class BeatsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+
+    var error = result.error;
+    if (error.code === BEAT_INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (error.code === BEAT_BRAND_NOT_FOUND) {
+      throw new BadRequestException({
+        message: error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    throw new BadRequestException({
+      message: 'Failed to create beat',
+      error: 'Bad Request',
+      statusCode: HttpStatus.BAD_REQUEST,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
+  @Roles(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.EXECUTIVE)
   @Get()
   async findAll(@Query() query: any): Promise<PaginationResult<BeatOutput>> {
     const input: ListBeatsInput = {
@@ -83,20 +108,38 @@ export class BeatsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    throw new BadRequestException({
+      message: 'Failed to list beats',
+      error: 'Bad Request',
+      statusCode: HttpStatus.BAD_REQUEST,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
+  @Roles(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.EXECUTIVE)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<BeatOutput> {
     const result = await this.getBeatUseCase.execute(parseInt(id));
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BEAT_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    throw new BadRequestException({
+      message: 'Failed to get beat',
+      error: 'Bad Request',
+      statusCode: HttpStatus.BAD_REQUEST,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
+  @Roles(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.EXECUTIVE)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -114,16 +157,62 @@ export class BeatsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BEAT_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === BEAT_INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === BEAT_BRAND_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else {
+      throw new BadRequestException({
+        message: 'Failed to update beat',
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
-  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
+  @Roles(ROLES.SUPER_ADMIN, ROLES.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const result = await this.deleteBeatUseCase.execute(parseInt(id));
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BEAT_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }

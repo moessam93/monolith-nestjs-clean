@@ -4,6 +4,7 @@ import { AssignRolesInput, UserOutput } from '../../dto/user.dto';
 import { Result, ok, err } from '../../common/result';
 import { UserNotFoundError, InsufficientPermissionsError } from '../../../domain/errors/user-errors';
 import { RoleNotFoundError } from '../../../domain/errors/role-errors';
+import { UserOutputMapper } from '../../mappers/user-output.mapper';
 
 export class AssignRolesUseCase {
   constructor(
@@ -38,15 +39,9 @@ export class AssignRolesUseCase {
     // Get updated user
     const updatedUser = await this.usersRepo.findById(userId);
 
-    return ok({
-      id: updatedUser!.id,
-      name: updatedUser!.name,
-      email: updatedUser!.email,
-      phoneNumber: updatedUser!.phoneNumber,
-      phoneNumberCountryCode: updatedUser!.phoneNumberCountryCode,
-      roles: [], // This will be populated by the mapper later
-      createdAt: updatedUser!.createdAt!,
-      updatedAt: updatedUser!.updatedAt!,
-    });
+    // Get role details for output
+    const roleDetails = await this.rolesRepo.findByKeys(updatedUser!.roles);
+    
+    return ok(UserOutputMapper.toOutput(updatedUser!, roleDetails));
   }
 }

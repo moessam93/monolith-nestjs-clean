@@ -9,14 +9,16 @@ import {
   Request,
   Inject,
   Query,
+  HttpStatus,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
-import { Public } from '../../../common/decorators/public.decorator';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { ROLES } from '../../../common/constants/roles';
+import { Public } from '../../decorators/public.decorator';
+import { Roles } from '../../decorators/roles.decorator';
+import { ROLES } from '../../constants/roles';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 
 // Use Cases
-import { BootstrapFirstSuperAdminUseCase } from '../../../application/use-cases/users/bootstrap-first-superadmin.usecase';
 import { CreateUserUseCase } from '../../../application/use-cases/users/create-user.usecase';
 import { ListUsersUseCase } from '../../../application/use-cases/users/list-users.usecase';
 import { UpdateUserUseCase } from '../../../application/use-cases/users/update-user.usecase';
@@ -33,6 +35,7 @@ import {
 } from '../../../application/dto/user.dto';
 import { PaginationResult } from '../../../application/common/pagination';
 import { isOk } from '../../../application/common/result';
+import { USER_ALREADY_EXISTS, USER_NOT_FOUND } from '../../../domain/errors/user-errors';
 
 // Validation DTOs
 import { CreateUserDto, UpdateUserDto, AssignRolesDto } from '../validation/user.dto';
@@ -40,8 +43,7 @@ import { CreateUserDto, UpdateUserDto, AssignRolesDto } from '../validation/user
 @Controller('users')
 export class UsersController {
   constructor(
-    @Inject(TOKENS.BootstrapFirstSuperAdminUseCase)
-    private readonly bootstrapFirstSuperAdminUseCase: BootstrapFirstSuperAdminUseCase,
+
     @Inject(TOKENS.CreateUserUseCase)
     private readonly createUserUseCase: CreateUserUseCase,
     @Inject(TOKENS.ListUsersUseCase)
@@ -69,7 +71,22 @@ export class UsersController {
       if (isOk(result)) {
         return result.value;
       }
-      throw result.error;
+      else if (result.error.code === USER_ALREADY_EXISTS) {
+        throw new BadRequestException({
+          message: result.error.message,
+          error: 'Bad Request',
+          statusCode: HttpStatus.BAD_REQUEST,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      else{
+        throw new BadRequestException({
+          message: result.error.message,
+          error: 'Bad Request',
+          statusCode: HttpStatus.BAD_REQUEST,
+          timestamp: new Date().toISOString(),
+        });
+      }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -85,7 +102,14 @@ export class UsersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN)
@@ -106,7 +130,30 @@ export class UsersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === USER_NOT_FOUND) {
+      throw new NotFoundException({
+        message: result.error.message,
+        error: 'Not Found',
+        statusCode: HttpStatus.NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === USER_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: 'Failed to update user',
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN)

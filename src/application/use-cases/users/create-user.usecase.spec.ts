@@ -2,6 +2,7 @@ import { CreateUserUseCase } from './create-user.usecase';
 import { IUnitOfWork, IRepositories } from '../../../domain/uow/unit-of-work';
 import { PasswordHasherPort } from '../../ports/password-hasher.port';
 import { User } from '../../../domain/entities/user';
+import { Role } from '../../../domain/entities/role';
 import { UserAlreadyExistsError, InsufficientPermissionsError } from '../../../domain/errors/user-errors';
 import { isOk, isErr } from '../../common/result';
 
@@ -25,7 +26,16 @@ describe('CreateUserUseCase', () => {
         existsByEmail: jest.fn(),
         count: jest.fn(),
       },
-      roles: {} as any,
+      roles: {
+        findByKeys: jest.fn(),
+        findByKey: jest.fn(),
+        exists: jest.fn(),
+        ensureKeys: jest.fn(),
+        list: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
       beats: {} as any,
       brands: {} as any,
       influencers: {} as any,
@@ -72,11 +82,12 @@ describe('CreateUserUseCase', () => {
       );
 
       mockPasswordHasher.hash.mockResolvedValue(hashedPassword);
+      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(null);
+      (mockRepositories.users.create as jest.Mock).mockResolvedValue(createdUser);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(createdUser);
+      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([]);
+      
       mockUnitOfWork.execute.mockImplementation(async (work) => {
-        mockRepositories.users.findByEmail.mockResolvedValue(null);
-        mockRepositories.users.create.mockResolvedValue(createdUser);
-        mockRepositories.users.findById.mockResolvedValue(createdUser);
-        
         return work(mockRepositories);
       });
 
@@ -89,6 +100,11 @@ describe('CreateUserUseCase', () => {
         expect(result.value.id).toBe('user-123');
         expect(result.value.name).toBe('John Doe');
         expect(result.value.email).toBe('john@example.com');
+        expect(result.value.phoneNumber).toBe('+1234567890');
+        expect(result.value.phoneNumberCountryCode).toBe('+1');
+        expect(result.value.roles).toEqual([]);
+        expect(result.value.createdAt).toBeInstanceOf(Date);
+        expect(result.value.updatedAt).toBeInstanceOf(Date);
       }
 
       expect(mockPasswordHasher.hash).toHaveBeenCalledWith('password123');
@@ -117,12 +133,15 @@ describe('CreateUserUseCase', () => {
         new Date(),
       );
 
+      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
+
       mockPasswordHasher.hash.mockResolvedValue(hashedPassword);
+      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(null);
+      (mockRepositories.users.create as jest.Mock).mockResolvedValue(createdUser);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(createdUser);
+      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([adminRole]);
+      
       mockUnitOfWork.execute.mockImplementation(async (work) => {
-        mockRepositories.users.findByEmail.mockResolvedValue(null);
-        mockRepositories.users.create.mockResolvedValue(createdUser);
-        mockRepositories.users.findById.mockResolvedValue(createdUser);
-        
         return work(mockRepositories);
       });
 
@@ -131,6 +150,12 @@ describe('CreateUserUseCase', () => {
 
       // Assert
       expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value.id).toBe('user-123');
+        expect(result.value.roles).toHaveLength(1);
+        expect(result.value.roles[0].key).toBe('Admin');
+        expect(result.value.roles[0].nameEn).toBe('Administrator');
+      }
       expect(mockRepositories.users.setRoles).toHaveBeenCalledWith('user-123', ['Admin']);
     });
 
@@ -174,8 +199,9 @@ describe('CreateUserUseCase', () => {
         [],
       );
 
+      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(existingUser);
+      
       mockUnitOfWork.execute.mockImplementation(async (work) => {
-        mockRepositories.users.findByEmail.mockResolvedValue(existingUser);
         return work(mockRepositories);
       });
 

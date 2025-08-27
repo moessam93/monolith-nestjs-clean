@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   Inject,
+  BadRequestException,
+  HttpStatus,
 } from '@nestjs/common';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 
@@ -30,8 +32,9 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateBrandDto, UpdateBrandDto } from '../validation/brand.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { ROLES } from 'src/common/constants/roles';
+import { Roles } from 'src/interface/decorators/roles.decorator';
+import { ROLES } from 'src/interface/constants/roles';
+import { BRAND_NAME_ALREADY_EXISTS, BRAND_NOT_FOUND } from 'src/domain/errors/brand-errors';
 
 @Controller('brands')
 export class BrandsController {
@@ -62,6 +65,17 @@ export class BrandsController {
     if (isOk(result)) {
       return result.value;
     }
+    else if (result.error.code === BRAND_NAME_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      
+    }
     throw result.error;
   }
 
@@ -78,7 +92,14 @@ export class BrandsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
@@ -88,7 +109,22 @@ export class BrandsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BRAND_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -109,7 +145,22 @@ export class BrandsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BRAND_NAME_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -119,6 +170,21 @@ export class BrandsController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === BRAND_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }

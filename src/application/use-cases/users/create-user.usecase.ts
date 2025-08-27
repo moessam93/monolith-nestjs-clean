@@ -4,6 +4,7 @@ import { CreateUserInput, UserOutput } from '../../dto/user.dto';
 import { Result, ok, err } from '../../common/result';
 import { User } from '../../../domain/entities/user';
 import { UserAlreadyExistsError, InsufficientPermissionsError } from '../../../domain/errors/user-errors';
+import { UserOutputMapper } from '../../mappers/user-output.mapper';
 
 export class CreateUserUseCase {
   constructor(
@@ -54,16 +55,10 @@ export class CreateUserUseCase {
       // Return final user with roles
       const finalUser = await users.findById(createdUser.id);
       
-      return ok({
-        id: finalUser!.id,
-        name: finalUser!.name,
-        email: finalUser!.email,
-        phoneNumber: finalUser!.phoneNumber,
-        phoneNumberCountryCode: finalUser!.phoneNumberCountryCode,
-        roles: [], // This will be populated by the mapper later
-        createdAt: finalUser!.createdAt!,
-        updatedAt: finalUser!.updatedAt!,
-      });
+      // Get role details for output
+      const roleDetails = await roles.findByKeys(finalUser!.roles);
+      
+      return ok(UserOutputMapper.toOutput(finalUser!, roleDetails));
     });
   }
 }

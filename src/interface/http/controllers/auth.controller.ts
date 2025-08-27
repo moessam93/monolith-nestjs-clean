@@ -1,11 +1,12 @@
-import { Body, Controller, Post, Inject } from '@nestjs/common';
-import { Public } from '../../../common/decorators/public.decorator';
+import { Body, Controller, Post, Inject, UnauthorizedException, HttpStatus, NotFoundException } from '@nestjs/common';
+import { Public } from '../../decorators/public.decorator';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 import { LoginUseCase } from '../../../application/use-cases/auth/login.usecase';
 import { LoginInput, LoginOutput } from '../../../application/dto/auth.dto';
 import { LoginDto } from '../validation/auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { isOk } from '../../../application/common/result';
+import { USER_NOT_FOUND } from '../../../domain/errors/user-errors';
 
 @Controller('auth')
 export class AuthController {
@@ -30,12 +31,23 @@ export class AuthController {
       return result.value;
     }
 
-    // Handle domain errors
     const error = result.error;
-    if (error.code === 'USER_NOT_FOUND' || error.code === 'INVALID_CREDENTIALS') {
-      throw new Error('Invalid credentials'); // This should be converted to proper HTTP exception
-    }
 
-    throw error;
+    if (error.code === USER_NOT_FOUND) {
+      throw new NotFoundException({
+        message: error.message,
+        error: 'Not Found',
+        statusCode: HttpStatus.NOT_FOUND,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else {
+      throw new UnauthorizedException({
+        message: error.message,
+        error: 'Unauthorized',
+        statusCode: HttpStatus.UNAUTHORIZED,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }

@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   Inject,
+  BadRequestException,
+  HttpStatus,
 } from '@nestjs/common';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 
@@ -33,8 +35,9 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateInfluencerDto, UpdateInfluencerDto, UpdateSocialPlatformDto } from '../validation/influencer.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { ROLES } from 'src/common/constants/roles';
+import { Roles } from '../../decorators/roles.decorator';
+import { ROLES } from '../../constants/roles';
+import { INFLUENCER_NOT_FOUND, INFLUENCER_USERNAME_ALREADY_EXISTS, INFLUENCER_EMAIL_ALREADY_EXISTS } from '../../../domain/errors/influencer-errors';
 
 @Controller('influencers')
 export class InfluencersController {
@@ -73,7 +76,22 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === INFLUENCER_USERNAME_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
@@ -89,7 +107,14 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
@@ -99,7 +124,22 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -121,7 +161,38 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === INFLUENCER_USERNAME_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === INFLUENCER_EMAIL_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else {
+      throw new BadRequestException({
+        message: 'An unexpected error occurred',
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -131,7 +202,22 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -151,7 +237,22 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else if (result.error.code === INFLUENCER_NOT_FOUND) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
@@ -164,6 +265,13 @@ export class InfluencersController {
     if (isOk(result)) {
       return result.value;
     }
-    throw result.error;
+    else{
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }
