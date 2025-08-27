@@ -13,6 +13,8 @@ export interface UpdateBeatInput {
   mediaUrl?: string;
   thumbnailUrl?: string;
   statusKey?: string;
+  influencerId?: number;
+  brandId?: number;
 }
 
 export interface BeatOutput {

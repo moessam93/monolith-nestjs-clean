@@ -1,11 +1,14 @@
 import { IUsersRepo } from '../../../domain/repositories/users-repo';
+import { IRolesRepo } from '../../../domain/repositories/roles-repo';
 import { UpdateUserInput, UserOutput } from '../../dto/user.dto';
 import { Result, ok, err } from '../../common/result';
 import { UserNotFoundError, UserAlreadyExistsError } from '../../../domain/errors/user-errors';
+import { UserOutputMapper } from '../../mappers/user-output.mapper';
 
 export class UpdateUserUseCase {
   constructor(
     private readonly usersRepo: IUsersRepo,
+    private readonly rolesRepo: IRolesRepo,
   ) {}
 
   async execute(input: UpdateUserInput): Promise<Result<UserOutput, UserNotFoundError | UserAlreadyExistsError>> {
@@ -34,15 +37,9 @@ export class UpdateUserUseCase {
     // Save updated user
     const updatedUser = await this.usersRepo.update(user);
 
-    return ok({
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      phoneNumber: updatedUser.phoneNumber,
-      phoneNumberCountryCode: updatedUser.phoneNumberCountryCode,
-      roles: [], // This will be populated by the mapper later
-      createdAt: updatedUser.createdAt!,
-      updatedAt: updatedUser.updatedAt!,
-    });
+    // Get role details for output
+    const roleDetails = await this.rolesRepo.findByKeys(updatedUser.roles);
+    
+    return ok(UserOutputMapper.toOutput(updatedUser, roleDetails));
   }
 }

@@ -1,17 +1,18 @@
 import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
+import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 
 export class GetInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IInfluencersRepo,
   ) {}
 
-  async execute(id: number): Promise<Result<InfluencerOutput, Error>> {
+  async execute(id: number): Promise<Result<InfluencerOutput, InfluencerNotFoundError>> {
     const influencer = await this.influencersRepo.findById(id);
     
     if (!influencer) {
-      return err(new Error(`Influencer not found with ID: ${id}`));
+      return err(new InfluencerNotFoundError(id));
     }
 
     return ok({

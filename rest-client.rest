@@ -33,8 +33,8 @@ POST http://localhost:3001/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@crowdads.com",
-  "password": "SecurePassword123!"
+  "email": "johnsmith@example.com",
+  "password": "password123"
 }
 
 ### ===========================================
@@ -43,8 +43,7 @@ Content-Type: application/json
 ### Note: Copy JWT token from login response and use in Authorization header
 ### Example: Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 
-@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYzg3ZTg0MC1lOTI1LTQ5ODItYWQ3Ni1lZjJmM2FiM2Q2NjMiLCJlbWFpbCI6ImFkbWluQGNyb3dkYWRzLmNvbSIsIm5hbWUiOiJTdXBlciBBZG1pbiIsInJvbGVzIjpbIlN1cGVyQWRtaW4iXSwiaWF0IjoxNzU2MzAyMDExLCJleHAiOjE3NTYzMDM4MTF9.0P_Adj9RPemE9tL0ZorwLP6DyvA1earYb_93SbC8DC4rJvu6wyrhjR2LlO_e96vtXDu44EFXecK8QR5NJdIOl3txuGGviJG_mcRV9bTRdNhxx5FoB_gQWdXkN9mE5sOFF6-nTqW5EyctarAjnZQnoOuhOa5LI5JFqLCf8k89Mop3ihcbdfelfHFbLu3tY5RVXFQh4qnxOdDRDRSdBcUqI4nZIkLT8tvHe99VQeMbWF7IHv7Q64cyWiVRGbGwoo6_12qr4a0I7YEk0f07O3b_JX0YSDYHgxxN4rbJM-nCdiDy0v0b_HCV-EinQY2Ox1admXtHD16zBFuZgns466qutw
-
+@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYzg3ZTg0MC1lOTI1LTQ5ODItYWQ3Ni1lZjJmM2FiM2Q2NjMiLCJlbWFpbCI6ImFkbWluQGNyb3dkYWRzLmNvbSIsIm5hbWUiOiJTdXBlciBBZG1pbiIsInJvbGVzIjpbIlN1cGVyQWRtaW4iXSwiaWF0IjoxNzU2MzM0OTExLCJleHAiOjE3NTYzMzY3MTF9.ZaFi3V30Y3xpKM5_oiKRIeNPRZjLQS-s4xIS5bCFDk_RfR0tYfyYK4hsLQypvLpxSULg2y85RBAEP1ICYk83BkcgurIRJOBhA53g_NtA-1S3AHil1T0wdJtiDsj1YhNKdKa67vIdcNfW5xz0fISHrTXDFOcZfI8pbJHaAG0sVz6LLAmtWEh2XhEWIYc50vkooHIpxKzzfIHD1XvnHxNkZ6Oh7gZtLJaCqPwRsXvtgbebNqlnaiS8zIH97i4K2P5qoPfxH6IZJixNgrJsFCxvjG1mUXGLX2GeFSeNYMDRh_0MOZkebunuUL2KDUoE6UYvsIJtmHk_j_HWBkdsvXUv1g
 ### Create first SuperAdmin user (Public - Bootstrap only)
 ### This endpoint is public only for creating the first user
 POST http://localhost:3001/api/users
@@ -64,12 +63,12 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "name": "John Smith",
-  "email": "john@example.com",
+  "name": "John Executive",
+  "email": "executive@example.com",
   "password": "password123",
   "phoneNumber": "+1987654321",
   "phoneNumberCountryCode": "+1",
-  "roleKeys": ["Admin"]
+  "roleKeys": ["Executive"]
 }
 
 ### Create user with multiple roles (SuperAdmin only)
@@ -296,18 +295,21 @@ Authorization: Bearer {{authToken}}
 
 ### Get all brands with pagination
 GET http://localhost:3001/api/brands?page=1&limit=5
+Authorization: Bearer {{authToken}}
 
 ### Search brands by English name
 GET http://localhost:3001/api/brands?search=tech
-
+Authorization: Bearer {{authToken}}
 ### Search brands by Arabic name
 GET http://localhost:3001/api/brands?search=تك
+Authorization: Bearer {{authToken}}
 
 ### Search with pagination
 GET http://localhost:3001/api/brands?search=fashion&page=1&limit=2
 
 ### Get brand by ID (with relationships and beats)
 GET http://localhost:3001/api/brands/1
+Authorization: Bearer {{authToken}}
 
 ### Create new brand
 POST http://localhost:3001/api/brands
@@ -345,11 +347,12 @@ Content-Type: application/json
 
 ### Update brand
 PATCH http://localhost:3001/api/brands/1
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "nameEn": "TechCorp International",
-  "websiteUrl": "https://techcorp-intl.com"
+  "nameEn": "TechCorp",
+  "websiteUrl": "https://techcorp-insasastl.com"
 }
 
 ### Delete brand (cascades to beats)
@@ -366,7 +369,8 @@ GET http://localhost:3001/api/beats
 Authorization: Bearer {{authToken}}
 
 ### Get all beats with pagination
-GET http://localhost:3001/api/beats?page=1&limit=5
+GET http://localhost:3001/api/beats?page=1&limit=1
+Authorization: Bearer {{authToken}}
 
 ### Search beats by caption
 GET http://localhost:3001/api/beats?search=campaign
@@ -378,7 +382,8 @@ GET http://localhost:3001/api/beats?search=summer
 GET http://localhost:3001/api/beats?search=fashion&page=1&limit=3
 
 ### Get beat by ID (with relationships - influencer and brand)
-GET http://localhost:3001/api/beats/1
+GET http://localhost:3001/api/beats/12
+Authorization: Bearer {{authToken}}
 
 ### Create new beat
 POST http://localhost:3001/api/beats
@@ -391,7 +396,7 @@ Authorization: Bearer {{authToken}}
   "thumbnailUrl": "https://example.com/thumbnails/summer-campaign.jpg",
   "statusKey": "published",
   "influencerId": 1,
-  "brandId": 1
+  "brandId": 5
 }
 
 ### Create another beat
@@ -465,6 +470,7 @@ GET http://localhost:3001/api/influencers?page=1&limit=20
 
 ### Test edge cases - page 0 (should default to 1)
 GET http://localhost:3001/api/brands?page=0&limit=5
+Authorization: Bearer {{authToken}}
 
 ### Test negative page (should default to 1)
 GET http://localhost:3001/api/beats?page=-1&limit=5

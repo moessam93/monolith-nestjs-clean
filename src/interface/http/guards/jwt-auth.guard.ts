@@ -1,10 +1,9 @@
-import { ExecutionContext, Injectable, Inject } from '@nestjs/common';
+import { ExecutionContext, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '../../../common/decorators/public.decorator';
+import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 import { ValidateUserUseCase } from '../../../application/use-cases/auth/validate-user.usecase';
-import { isOk } from '../../../application/common/result';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -30,8 +29,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any, context: any, status?: any) {
-    if (err || !user) {
-      throw err || new Error('Unauthorized');
+    if (err) {
+      throw new UnauthorizedException('Authentication failed');
+    }
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid or missing authentication token');
     }
 
     return user;

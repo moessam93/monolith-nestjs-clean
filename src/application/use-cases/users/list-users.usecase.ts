@@ -1,11 +1,14 @@
 import { IUsersRepo } from '../../../domain/repositories/users-repo';
+import { IRolesRepo } from '../../../domain/repositories/roles-repo';
 import { ListUsersInput, UserOutput } from '../../dto/user.dto';
 import { Result, ok } from '../../common/result';
+import { UserOutputMapper } from '../../mappers/user-output.mapper';
 import { PaginationResult, createPaginationMeta } from '../../common/pagination';
 
 export class ListUsersUseCase {
   constructor(
     private readonly usersRepo: IUsersRepo,
+    private readonly rolesRepo: IRolesRepo,
   ) {}
 
   async execute(input: ListUsersInput = {}): Promise<Result<PaginationResult<UserOutput>>> {
@@ -13,16 +16,18 @@ export class ListUsersUseCase {
 
     const result = await this.usersRepo.list({ page, limit, search });
 
-    const userOutputs: UserOutput[] = result.data.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      phoneNumberCountryCode: user.phoneNumberCountryCode,
-      roles: [], // This will be populated by the mapper later
-      createdAt: user.createdAt!,
-      updatedAt: user.updatedAt!,
-    }));
+    // Get all unique role keys from all users
+    const allRoleKeys = [...new Set(result.data.flatMap(user => user.roles))];
+    const allRoles = await this.rolesRepo.findByKeys(allRoleKeys);
+    
+    // Create a map for quick role lookup
+    const roleMap = new Map(allRoles.map(role => [role.key, role]));
+    
+    // Map users to UserOutput with proper roles
+    const userOutputs: UserOutput[] = result.data.map(user => {
+      const userRoles = user.roles.map(roleKey => roleMap.get(roleKey)!).filter(Boolean);
+      return UserOutputMapper.toOutput(user, userRoles);
+    });
 
     return ok({
       data: userOutputs,

@@ -1,34 +1,35 @@
 import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { UpdateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
+import { InfluencerNotFoundError, InfluencerUsernameAlreadyExistsError, InfluencerEmailAlreadyExistsError } from '../../../domain/errors/influencer-errors';
 
 export class UpdateInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IInfluencersRepo,
   ) {}
 
-  async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, Error>> {
+  async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerNotFoundError | InfluencerUsernameAlreadyExistsError | InfluencerEmailAlreadyExistsError>> {
     const { id, username, email, nameEn, nameAr, profilePictureUrl } = input;
 
     // Check if influencer exists
     const influencer = await this.influencersRepo.findById(id);
     if (!influencer) {
-      return err(new Error(`Influencer not found with ID: ${id}`));
+      return err(new InfluencerNotFoundError(id));
     }
 
     // Check if username is being changed and already exists
     if (username && username !== influencer.username) {
       const existingByUsername = await this.influencersRepo.findByUsername(username);
-      if (existingByUsername) {
-        return err(new Error(`Influencer with username '${username}' already exists`));
+      if (existingByUsername && existingByUsername.id !== id) {
+        return err(new InfluencerUsernameAlreadyExistsError(username));
       }
     }
 
     // Check if email is being changed and already exists
     if (email && email !== influencer.email) {
       const existingByEmail = await this.influencersRepo.findByEmail(email);
-      if (existingByEmail) {
-        return err(new Error(`Influencer with email '${email}' already exists`));
+      if (existingByEmail && existingByEmail.id !== id) {
+        return err(new InfluencerEmailAlreadyExistsError(email));
       }
     }
 

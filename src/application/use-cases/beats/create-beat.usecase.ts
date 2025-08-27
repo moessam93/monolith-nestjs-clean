@@ -4,6 +4,7 @@ import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { CreateBeatInput, BeatOutput } from '../../dto/beat.dto';
 import { Result, ok, err } from '../../common/result';
 import { Beat } from '../../../domain/entities/beat';
+import { BeatBrandNotFoundError, BeatInfluencerNotFoundError } from '../../../domain/errors/beat-errors';
 
 export class CreateBeatUseCase {
   constructor(
@@ -12,19 +13,19 @@ export class CreateBeatUseCase {
     private readonly brandsRepo: IBrandsRepo,
   ) {}
 
-  async execute(input: CreateBeatInput): Promise<Result<BeatOutput, Error>> {
+  async execute(input: CreateBeatInput): Promise<Result<BeatOutput, BeatInfluencerNotFoundError | BeatBrandNotFoundError>> {
     const { caption, mediaUrl, thumbnailUrl, statusKey, influencerId, brandId } = input;
 
     // Verify influencer exists
     const influencer = await this.influencersRepo.findById(influencerId);
     if (!influencer) {
-      return err(new Error(`Influencer not found with ID: ${influencerId}`));
+      return err(new BeatInfluencerNotFoundError(influencerId));
     }
 
     // Verify brand exists
     const brand = await this.brandsRepo.findById(brandId);
     if (!brand) {
-      return err(new Error(`Brand not found with ID: ${brandId}`));
+      return err(new BeatBrandNotFoundError(brandId));
     }
 
     // Create beat entity
