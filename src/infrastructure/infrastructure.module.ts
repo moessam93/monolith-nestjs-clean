@@ -29,14 +29,29 @@ import { SystemClock } from './common/system-clock';
         const expiresIn = configService.get<string>('EXPIRY_DURATION', '1h');
 
         if (algorithm === 'RS256') {
-          const privateKey = Buffer.from(
-            configService.get<string>('JWT_PRIVATE_KEY_BASE64', ''),
-            'base64'
-          ).toString('utf-8');
-          const publicKey = Buffer.from(
-            configService.get<string>('JWT_PUBLIC_KEY_BASE64', ''),
-            'base64'
-          ).toString('utf-8');
+          // Get the keys from environment variables
+          const privateKeyEnv = configService.get<string>('JWT_PRIVATE_KEY_BASE64', '');
+          const publicKeyEnv = configService.get<string>('JWT_PUBLIC_KEY_BASE64', '');
+
+          // Handle both base64 encoded and direct PEM format
+          let privateKey: string;
+          let publicKey: string;
+
+          if (privateKeyEnv.startsWith('-----BEGIN')) {
+            // Key is already in PEM format
+            privateKey = privateKeyEnv;
+          } else {
+            // Key is base64 encoded, decode it
+            privateKey = Buffer.from(privateKeyEnv, 'base64').toString('utf-8');
+          }
+
+          if (publicKeyEnv.startsWith('-----BEGIN')) {
+            // Key is already in PEM format  
+            publicKey = publicKeyEnv;
+          } else {
+            // Key is base64 encoded, decode it
+            publicKey = Buffer.from(publicKeyEnv, 'base64').toString('utf-8');
+          }
 
           return {
             privateKey,

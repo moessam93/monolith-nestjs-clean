@@ -43,7 +43,7 @@ Content-Type: application/json
 ### Note: Copy JWT token from login response and use in Authorization header
 ### Example: Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 
-@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1dWlkLXN0cmluZyIsImVtYWlsIjoiYWRtaW5AY3Jvd2RhZHMuY29tIiwibmFtZSI6IlN1cGVyIEFkbWluIiwicm9sZXMiOlsiU3VwZXJBZG1pbiJdLCJpYXQiOjE2NDA5OTUyMDAsImV4cCI6MTY0MDk5ODgwMH0.example-signature
+@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYzg3ZTg0MC1lOTI1LTQ5ODItYWQ3Ni1lZjJmM2FiM2Q2NjMiLCJlbWFpbCI6ImFkbWluQGNyb3dkYWRzLmNvbSIsIm5hbWUiOiJTdXBlciBBZG1pbiIsInJvbGVzIjpbIlN1cGVyQWRtaW4iXSwiaWF0IjoxNzU2MzAyMDExLCJleHAiOjE3NTYzMDM4MTF9.0P_Adj9RPemE9tL0ZorwLP6DyvA1earYb_93SbC8DC4rJvu6wyrhjR2LlO_e96vtXDu44EFXecK8QR5NJdIOl3txuGGviJG_mcRV9bTRdNhxx5FoB_gQWdXkN9mE5sOFF6-nTqW5EyctarAjnZQnoOuhOa5LI5JFqLCf8k89Mop3ihcbdfelfHFbLu3tY5RVXFQh4qnxOdDRDRSdBcUqI4nZIkLT8tvHe99VQeMbWF7IHv7Q64cyWiVRGbGwoo6_12qr4a0I7YEk0f07O3b_JX0YSDYHgxxN4rbJM-nCdiDy0v0b_HCV-EinQY2Ox1admXtHD16zBFuZgns466qutw
 
 ### Create first SuperAdmin user (Public - Bootstrap only)
 ### This endpoint is public only for creating the first user
@@ -68,7 +68,7 @@ Authorization: Bearer {{authToken}}
   "email": "john@example.com",
   "password": "password123",
   "phoneNumber": "+1987654321",
-  "phoneNumberCountryCode": "+1",
+  "phoneCountryCode": "+1",
   "roleKeys": ["Admin"]
 }
 
