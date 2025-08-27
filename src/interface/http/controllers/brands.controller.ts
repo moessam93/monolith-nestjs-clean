@@ -30,6 +30,8 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateBrandDto, UpdateBrandDto } from '../validation/brand.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROLES } from 'src/common/constants/roles';
 
 @Controller('brands')
 export class BrandsController {
@@ -46,6 +48,7 @@ export class BrandsController {
     private readonly deleteBrandUseCase: DeleteBrandUseCase,
   ) {}
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Post()
   async create(@Body() createBrandDto: CreateBrandDto): Promise<BrandOutput> {
     const input: CreateBrandInput = {
@@ -62,6 +65,7 @@ export class BrandsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get()
   async findAll(@Query() query: any): Promise<PaginationResult<BrandOutput>> {
     const input: ListBrandsInput = {
@@ -77,6 +81,7 @@ export class BrandsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<BrandOutput> {
     const result = await this.getBrandUseCase.execute(parseInt(id));
@@ -86,6 +91,7 @@ export class BrandsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -106,6 +112,7 @@ export class BrandsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const result = await this.deleteBrandUseCase.execute(parseInt(id));

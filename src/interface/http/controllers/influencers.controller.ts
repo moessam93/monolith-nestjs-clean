@@ -33,6 +33,8 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateInfluencerDto, UpdateInfluencerDto, UpdateSocialPlatformDto } from '../validation/influencer.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROLES } from 'src/common/constants/roles';
 
 @Controller('influencers')
 export class InfluencersController {
@@ -51,6 +53,7 @@ export class InfluencersController {
     private readonly manageSocialPlatformUseCase: ManageSocialPlatformUseCase,
   ) {}
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Post()
   async create(@Body() createInfluencerDto: CreateInfluencerDto): Promise<InfluencerOutput> {
     const input: CreateInfluencerInput = {
@@ -73,6 +76,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get()
   async findAll(@Query() query: any): Promise<PaginationResult<InfluencerOutput>> {
     const input: ListInfluencersInput = {
@@ -88,6 +92,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<InfluencerOutput> {
     const result = await this.getInfluencerUseCase.execute(parseInt(id));
@@ -97,6 +102,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -118,6 +124,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const result = await this.deleteInfluencerUseCase.execute(parseInt(id));
@@ -127,6 +134,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Post(':id/social-platforms')
   async addOrUpdateSocialPlatform(
     @Param('id') id: string,
@@ -146,6 +154,7 @@ export class InfluencersController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Delete(':id/social-platforms/:key')
   async removeSocialPlatform(
     @Param('id') id: string,
