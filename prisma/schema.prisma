@@ -84,3 +84,45 @@ model SocialPlatform {
   @@unique([influencerId, key]) // One platform type per influencer
   @@map("social_platforms")
 }
+
+model User {
+  id                      String   @id @default(uuid())
+  name                    String
+  email                   String   @unique
+  phoneNumber             String?
+  phoneNumberCountryCode  String?
+  passwordHash            String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  // Relationships
+  userRoles               UserRole[] // One user has many roles through UserRole
+  
+  @@map("users")
+}
+
+model Role {
+  id       Int    @id @default(autoincrement())
+  key      String @unique
+  nameEn   String
+  nameAr   String
+  
+  // Relationships
+  userRoles UserRole[] // One role has many users through UserRole
+  
+  @@map("roles")
+}
+
+model UserRole {
+  id     Int @id @default(autoincrement())
+  userId String
+  roleId Int
+  
+  // Relationships
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  // Constraints - prevent duplicate user-role assignments
+  @@unique([userId, roleId])
+  @@map("users_roles")
+}
