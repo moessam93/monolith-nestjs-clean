@@ -43,7 +43,7 @@ export class AssignRolesUseCase {
       name: updatedUser!.name,
       email: updatedUser!.email,
       phoneNumber: updatedUser!.phoneNumber,
-      phoneCountryCode: updatedUser!.phoneCountryCode,
+      phoneNumberCountryCode: updatedUser!.phoneNumberCountryCode,
       roles: [], // This will be populated by the mapper later
       createdAt: updatedUser!.createdAt!,
       updatedAt: updatedUser!.updatedAt!,

@@ -68,7 +68,7 @@ Authorization: Bearer {{authToken}}
   "email": "john@example.com",
   "password": "password123",
   "phoneNumber": "+1987654321",
-  "phoneCountryCode": "+1",
+  "phoneNumberCountryCode": "+1",
   "roleKeys": ["Admin"]
 }
 

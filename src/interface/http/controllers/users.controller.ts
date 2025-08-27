@@ -61,7 +61,7 @@ export class UsersController {
         email: createUserDto.email,
         password: createUserDto.password,
         phoneNumber: createUserDto.phoneNumber,
-        phoneCountryCode: createUserDto.phoneCountryCode,
+        phoneNumberCountryCode: createUserDto.phoneNumberCountryCode,
         roleKeys: createUserDto.roleKeys,
       };
 
@@ -99,7 +99,7 @@ export class UsersController {
       name: updateUserDto.name,
       email: updateUserDto.email,
       phoneNumber: updateUserDto.phoneNumber,
-      phoneCountryCode: updateUserDto.phoneCountryCode,
+      phoneNumberCountryCode: updateUserDto.phoneNumberCountryCode,
     };
 
     const result = await this.updateUserUseCase.execute(input);

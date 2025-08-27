@@ -3,7 +3,7 @@ export interface CreateUserInput {
   email: string;
   password: string;
   phoneNumber?: string;
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
   roleKeys?: string[];
 }
 
@@ -12,7 +12,7 @@ export interface UpdateUserInput {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
   roleKeys?: string[];
 }
 
@@ -21,7 +21,7 @@ export interface UserOutput {
   name: string;
   email: string;
   phoneNumber?: string;
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
   roles: RoleOutput[];
   createdAt: Date;
   updatedAt: Date;
@@ -50,5 +50,5 @@ export interface BootstrapSuperAdminInput {
   email: string;
   password: string;
   phoneNumber?: string;
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
 }

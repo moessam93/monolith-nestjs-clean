@@ -18,7 +18,7 @@ export class ListUsersUseCase {
       name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber,
-      phoneCountryCode: user.phoneCountryCode,
+      phoneNumberCountryCode: user.phoneNumberCountryCode,
       roles: [], // This will be populated by the mapper later
       createdAt: user.createdAt!,
       updatedAt: user.updatedAt!,

@@ -25,7 +25,7 @@ export class UserMapper {
       name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber || null,
-      phoneNumberCountryCode: user.phoneCountryCode || null,
+      phoneNumberCountryCode: user.phoneNumberCountryCode || null,
       passwordHash: user.passwordHash!,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
