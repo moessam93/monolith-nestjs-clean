@@ -37,10 +37,13 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
-.env.dev
+.env.development
 .env.testing
 .env.production
 .env.staging
+
+# JWT keys directory
+/keys
 
 # temp directory
 .temp
