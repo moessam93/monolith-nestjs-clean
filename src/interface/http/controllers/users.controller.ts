@@ -52,28 +52,11 @@ export class UsersController {
     private readonly assignRolesUseCase: AssignRolesUseCase,
   ) {}
 
-  @Public() // Public for bootstrap - creating the first SuperAdmin
+  @Roles(ROLES.SUPER_ADMIN)
   @Post()
   async create(@Body() createUserDto: CreateUserDto, @Request() req): Promise<UserOutput> {
-    // Check if this is bootstrap (no users exist) or regular user creation
-    const isBootstrap = !req.user; // No authenticated user means bootstrap
-
-    if (isBootstrap) {
-      const input: BootstrapSuperAdminInput = {
-        name: createUserDto.name,
-        email: createUserDto.email,
-        password: createUserDto.password,
-        phoneNumber: createUserDto.phoneNumber,
-        phoneCountryCode: createUserDto.phoneCountryCode,
-      };
-
-      const result = await this.bootstrapFirstSuperAdminUseCase.execute(input);
-      if (isOk(result)) {
-        return result.value;
-      }
-      throw result.error;
-    } else {
-      const input: CreateUserInput = {
+  
+    const input: CreateUserInput = {
         name: createUserDto.name,
         email: createUserDto.email,
         password: createUserDto.password,
@@ -87,10 +70,9 @@ export class UsersController {
         return result.value;
       }
       throw result.error;
-    }
   }
 
-  @Roles(ROLES.SUPER_ADMIN)
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Get()
   async findAll(@Query() query: any): Promise<PaginationResult<UserOutput>> {
     const input: ListUsersInput = {

@@ -30,6 +30,8 @@ import { isOk } from '../../../application/common/result';
 
 // Validation DTOs
 import { CreateBeatDto, UpdateBeatDto } from '../validation/beat.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROLES } from 'src/common/constants/roles';
 
 @Controller('beats')
 export class BeatsController {
@@ -46,6 +48,7 @@ export class BeatsController {
     private readonly deleteBeatUseCase: DeleteBeatUseCase,
   ) {}
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Post()
   async create(@Body() createBeatDto: CreateBeatDto): Promise<BeatOutput> {
     const input: CreateBeatInput = {
@@ -64,6 +67,7 @@ export class BeatsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get()
   async findAll(@Query() query: any): Promise<PaginationResult<BeatOutput>> {
     const input: ListBeatsInput = {
@@ -82,6 +86,7 @@ export class BeatsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<BeatOutput> {
     const result = await this.getBeatUseCase.execute(parseInt(id));
@@ -91,6 +96,7 @@ export class BeatsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.EXECUTIVE)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -111,6 +117,7 @@ export class BeatsController {
     throw result.error;
   }
 
+  @Roles(ROLES.SUPER_ADMIN,ROLES.ADMIN)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
     const result = await this.deleteBeatUseCase.execute(parseInt(id));
