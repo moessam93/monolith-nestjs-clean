@@ -9,7 +9,7 @@ export class UpdateUserUseCase {
   ) {}
 
   async execute(input: UpdateUserInput): Promise<Result<UserOutput, UserNotFoundError | UserAlreadyExistsError>> {
-    const { id, name, email, phoneNumber, phoneCountryCode } = input;
+    const { id, name, email, phoneNumber, phoneNumberCountryCode } = input;
 
     // Check if user exists
     const user = await this.usersRepo.findById(id);
@@ -29,7 +29,7 @@ export class UpdateUserUseCase {
     if (name !== undefined) user.name = name;
     if (email !== undefined) user.email = email;
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
-    if (phoneCountryCode !== undefined) user.phoneCountryCode = phoneCountryCode;
+    if (phoneNumberCountryCode !== undefined) user.phoneNumberCountryCode = phoneNumberCountryCode;
 
     // Save updated user
     const updatedUser = await this.usersRepo.update(user);
@@ -39,7 +39,7 @@ export class UpdateUserUseCase {
       name: updatedUser.name,
       email: updatedUser.email,
       phoneNumber: updatedUser.phoneNumber,
-      phoneCountryCode: updatedUser.phoneCountryCode,
+      phoneNumberCountryCode: updatedUser.phoneNumberCountryCode,
       roles: [], // This will be populated by the mapper later
       createdAt: updatedUser.createdAt!,
       updatedAt: updatedUser.updatedAt!,

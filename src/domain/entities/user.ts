@@ -5,7 +5,7 @@ export class User {
     public email: string,
     public roles: string[], // ['SuperAdmin'|'Admin'|'Executive']
     public phoneNumber?: string,
-    public phoneCountryCode?: string,
+    public phoneNumberCountryCode?: string,
     public passwordHash?: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,

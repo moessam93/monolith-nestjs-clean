@@ -55,7 +55,7 @@ describe('CreateUserUseCase', () => {
         email: 'john@example.com',
         password: 'password123',
         phoneNumber: '+1234567890',
-        phoneCountryCode: '+1',
+        phoneNumberCountryCode: '+1',
       };
 
       const hashedPassword = 'hashed-password';

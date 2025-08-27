@@ -13,7 +13,7 @@ export class BootstrapFirstSuperAdminUseCase {
   ) {}
 
   async execute(input: BootstrapSuperAdminInput): Promise<Result<UserOutput, UserAlreadyExistsError>> {
-    const { name, email, password, phoneNumber, phoneCountryCode } = input;
+    const { name, email, password, phoneNumber, phoneNumberCountryCode } = input;
 
     return this.unitOfWork.execute(async ({ users, roles }) => {
       // Check if user already exists
@@ -33,7 +33,7 @@ export class BootstrapFirstSuperAdminUseCase {
         email,
         [RoleKey.SUPER_ADMIN],
         phoneNumber,
-        phoneCountryCode,
+        phoneNumberCountryCode,
         passwordHash,
         new Date(),
         new Date(),
@@ -56,7 +56,7 @@ export class BootstrapFirstSuperAdminUseCase {
         name: finalUser!.name,
         email: finalUser!.email,
         phoneNumber: finalUser!.phoneNumber,
-        phoneCountryCode: finalUser!.phoneCountryCode,
+        phoneNumberCountryCode: finalUser!.phoneNumberCountryCode,
         roles: [], // This will be populated by the mapper later
         createdAt: finalUser!.createdAt!,
         updatedAt: finalUser!.updatedAt!,

@@ -17,7 +17,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
 
   @IsOptional()
   @IsArray()
@@ -40,7 +40,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  phoneCountryCode?: string;
+  phoneNumberCountryCode?: string;
 
   @IsOptional()
   @IsArray()

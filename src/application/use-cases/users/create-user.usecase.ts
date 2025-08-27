@@ -12,7 +12,7 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(input: CreateUserInput, currentUserRoles?: string[]): Promise<Result<UserOutput, UserAlreadyExistsError | InsufficientPermissionsError>> {
-    const { name, email, password, phoneNumber, phoneCountryCode, roleKeys = [] } = input;
+    const { name, email, password, phoneNumber, phoneNumberCountryCode, roleKeys = [] } = input;
 
     return this.unitOfWork.execute(async ({ users, roles }) => {
       // Check permissions for role assignment
@@ -37,7 +37,7 @@ export class CreateUserUseCase {
         email,
         [],
         phoneNumber,
-        phoneCountryCode,
+        phoneNumberCountryCode,
         passwordHash,
         new Date(),
         new Date(),
@@ -59,7 +59,7 @@ export class CreateUserUseCase {
         name: finalUser!.name,
         email: finalUser!.email,
         phoneNumber: finalUser!.phoneNumber,
-        phoneCountryCode: finalUser!.phoneCountryCode,
+        phoneNumberCountryCode: finalUser!.phoneNumberCountryCode,
         roles: [], // This will be populated by the mapper later
         createdAt: finalUser!.createdAt!,
         updatedAt: finalUser!.updatedAt!,
