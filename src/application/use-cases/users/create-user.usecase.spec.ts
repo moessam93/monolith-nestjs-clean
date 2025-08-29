@@ -180,7 +180,6 @@ describe('CreateUserUseCase', () => {
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
         expect(result.error).toBeInstanceOf(InsufficientPermissionsError);
-        expect(result.error.code).toBe('INSUFFICIENT_PERMISSIONS');
       }
     });
 
@@ -212,7 +211,6 @@ describe('CreateUserUseCase', () => {
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
         expect(result.error).toBeInstanceOf(UserAlreadyExistsError);
-        expect(result.error.code).toBe('USER_ALREADY_EXISTS');
       }
     });
   });

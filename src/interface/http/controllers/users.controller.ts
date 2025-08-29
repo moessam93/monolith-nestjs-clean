@@ -12,10 +12,11 @@ import {
   HttpStatus,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Public } from '../../decorators/public.decorator';
 import { Roles } from '../../decorators/roles.decorator';
-import { ROLES } from '../../constants/roles';
+import { ROLES } from '../../../domain/constants/roles';
 import { TOKENS } from '../../../infrastructure/common/tokens';
 
 // Use Cases
@@ -35,7 +36,7 @@ import {
 } from '../../../application/dto/user.dto';
 import { PaginationResult } from '../../../application/common/pagination';
 import { isOk } from '../../../application/common/result';
-import { USER_ALREADY_EXISTS, USER_NOT_FOUND } from '../../../domain/errors/user-errors';
+import { InsufficientPermissionsError, UserAlreadyExistsError, UserNotFoundError } from '../../../domain/errors/user-errors';
 
 // Validation DTOs
 import { CreateUserDto, UpdateUserDto, AssignRolesDto } from '../validation/user.dto';
@@ -71,11 +72,19 @@ export class UsersController {
       if (isOk(result)) {
         return result.value;
       }
-      else if (result.error.code === USER_ALREADY_EXISTS) {
+      else if (result.error instanceof UserAlreadyExistsError) {
         throw new BadRequestException({
           message: result.error.message,
           error: 'Bad Request',
           statusCode: HttpStatus.BAD_REQUEST,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      else if (result.error instanceof InsufficientPermissionsError) {
+        throw new ForbiddenException({
+          message: result.error.message,
+          error: 'Forbidden',
+          statusCode: HttpStatus.FORBIDDEN,
           timestamp: new Date().toISOString(),
         });
       }
@@ -130,7 +139,7 @@ export class UsersController {
     if (isOk(result)) {
       return result.value;
     }
-    else if (result.error.code === USER_NOT_FOUND) {
+    else if (result.error instanceof UserNotFoundError) {
       throw new NotFoundException({
         message: result.error.message,
         error: 'Not Found',
@@ -138,7 +147,7 @@ export class UsersController {
         timestamp: new Date().toISOString(),
       });
     }
-    else if (result.error.code === USER_ALREADY_EXISTS) {
+    else if (result.error instanceof UserAlreadyExistsError) {
       throw new BadRequestException({
         message: result.error.message,
         error: 'Bad Request',

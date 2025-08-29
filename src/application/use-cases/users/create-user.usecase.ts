@@ -5,6 +5,7 @@ import { Result, ok, err } from '../../common/result';
 import { User } from '../../../domain/entities/user';
 import { UserAlreadyExistsError, InsufficientPermissionsError } from '../../../domain/errors/user-errors';
 import { UserOutputMapper } from '../../mappers/user-output.mapper';
+import { BadRequestException } from '@nestjs/common';
 
 export class CreateUserUseCase {
   constructor(
@@ -12,7 +13,7 @@ export class CreateUserUseCase {
     private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
-  async execute(input: CreateUserInput, currentUserRoles?: string[]): Promise<Result<UserOutput, UserAlreadyExistsError | InsufficientPermissionsError>> {
+  async execute(input: CreateUserInput, currentUserRoles?: string[]): Promise<Result<UserOutput, UserAlreadyExistsError | InsufficientPermissionsError | BadRequestException>> {
     const { name, email, password, phoneNumber, phoneNumberCountryCode, roleKeys = [] } = input;
 
     return this.unitOfWork.execute(async ({ users, roles }) => {
