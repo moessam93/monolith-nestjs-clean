@@ -33,7 +33,7 @@ import { isOk } from '../../../application/common/result';
 // Validation DTOs
 import { CreateBeatDto, UpdateBeatDto } from '../validation/beat.dto';
 import { Roles } from 'src/interface/decorators/roles.decorator';
-import { ROLES } from 'src/interface/constants/roles';
+import { ROLES } from 'src/domain/constants/roles';
 
 @Controller('beats')
 export class BeatsController {

@@ -23,7 +23,7 @@ import { RolesGuard } from './http/guards/roles.guard';
 import { JwtStrategy } from './http/auth/jwt.strategy';
 
 // Middleware
-import { NonIdempotentHandlerMiddleware } from './middleware/non-idempotent-handler.middleware';
+import { NonIdempotentHandlerMiddleware } from './http/middleware/non-idempotent-handler.middleware';
 
 // No legacy modules - all migrated to clean architecture
 

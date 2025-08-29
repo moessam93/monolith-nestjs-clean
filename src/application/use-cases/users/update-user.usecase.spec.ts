@@ -1,6 +1,5 @@
 import { UpdateUserUseCase } from './update-user.usecase';
-import { IUsersRepo } from '../../../domain/repositories/users-repo';
-import { IRolesRepo } from '../../../domain/repositories/roles-repo';
+import { IUnitOfWork, IRepositories } from '../../../domain/uow/unit-of-work';
 import { User } from '../../../domain/entities/user';
 import { Role } from '../../../domain/entities/role';
 import { UserNotFoundError, UserAlreadyExistsError } from '../../../domain/errors/user-errors';
@@ -8,35 +7,44 @@ import { isOk, isErr } from '../../common/result';
 
 describe('UpdateUserUseCase', () => {
   let updateUserUseCase: UpdateUserUseCase;
-  let mockUsersRepo: jest.Mocked<IUsersRepo>;
-  let mockRolesRepo: jest.Mocked<IRolesRepo>;
+  let mockUnitOfWork: jest.Mocked<IUnitOfWork>;
+  let mockRepositories: jest.Mocked<IRepositories>;
 
   beforeEach(() => {
-    mockUsersRepo = {
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
-      list: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      setRoles: jest.fn(),
-      exists: jest.fn(),
-      existsByEmail: jest.fn(),
-      count: jest.fn(),
+    mockRepositories = {
+      users: {
+        findByEmail: jest.fn(),
+        findById: jest.fn(),
+        list: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        setRoles: jest.fn(),
+        exists: jest.fn(),
+        existsByEmail: jest.fn(),
+        count: jest.fn(),
+      },
+      roles: {
+        findByKeys: jest.fn(),
+        findByKey: jest.fn(),
+        exists: jest.fn(),
+        ensureKeys: jest.fn(),
+        list: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      beats: {} as any,
+      brands: {} as any,
+      influencers: {} as any,
+      socialPlatforms: {} as any,
     };
 
-    mockRolesRepo = {
-      findByKeys: jest.fn(),
-      findByKey: jest.fn(),
-      exists: jest.fn(),
-      ensureKeys: jest.fn(),
-      list: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+    mockUnitOfWork = {
+      execute: jest.fn(),
     };
 
-    updateUserUseCase = new UpdateUserUseCase(mockUsersRepo, mockRolesRepo);
+    updateUserUseCase = new UpdateUserUseCase(mockUnitOfWork);
   });
 
   describe('execute', () => {
@@ -77,10 +85,14 @@ describe('UpdateUserUseCase', () => {
 
       const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
-      mockUsersRepo.findById.mockResolvedValue(existingUser);
-      mockUsersRepo.findByEmail.mockResolvedValue(null); // Email not taken by another user
-      mockUsersRepo.update.mockResolvedValue(updatedUser);
-      mockRolesRepo.findByKeys.mockResolvedValue([adminRole]);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(existingUser);
+      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(null); // Email not taken by another user
+      (mockRepositories.users.update as jest.Mock).mockResolvedValue(updatedUser);
+      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([adminRole]);
+      
+      mockUnitOfWork.execute.mockImplementation(async (work) => {
+        return work(mockRepositories);
+      });
 
       // Act
       const result = await updateUserUseCase.execute(input);
@@ -97,9 +109,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.value.roles[0].key).toBe('Admin');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith(userId);
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('updated@example.com');
-      expect(mockUsersRepo.update).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockRepositories.users.findById).toHaveBeenCalledWith(userId);
+      expect(mockRepositories.users.findByEmail).toHaveBeenCalledWith('updated@example.com');
+      expect(mockRepositories.users.update).toHaveBeenCalledWith(expect.objectContaining({
         id: userId,
         name: 'Updated Name',
         email: 'updated@example.com',
@@ -113,7 +125,11 @@ describe('UpdateUserUseCase', () => {
         name: 'Updated Name',
       };
 
-      mockUsersRepo.findById.mockResolvedValue(null);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(null);
+      
+      mockUnitOfWork.execute.mockImplementation(async (work) => {
+        return work(mockRepositories);
+      });
 
       // Act
       const result = await updateUserUseCase.execute(input);
@@ -125,8 +141,8 @@ describe('UpdateUserUseCase', () => {
         expect(result.error.code).toBe('USER_NOT_FOUND');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith('nonexistent-user');
-      expect(mockUsersRepo.update).not.toHaveBeenCalled();
+      expect(mockRepositories.users.findById).toHaveBeenCalledWith('nonexistent-user');
+      expect(mockRepositories.users.update).not.toHaveBeenCalled();
     });
 
     it('should return UserAlreadyExistsError when email is already taken', async () => {
@@ -151,8 +167,12 @@ describe('UpdateUserUseCase', () => {
         [],
       );
 
-      mockUsersRepo.findById.mockResolvedValue(existingUser);
-      mockUsersRepo.findByEmail.mockResolvedValue(userWithTakenEmail);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(existingUser);
+      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(userWithTakenEmail);
+      
+      mockUnitOfWork.execute.mockImplementation(async (work) => {
+        return work(mockRepositories);
+      });
 
       // Act
       const result = await updateUserUseCase.execute(input);
@@ -164,9 +184,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.error.code).toBe('USER_ALREADY_EXISTS');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith(userId);
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('taken@example.com');
-      expect(mockUsersRepo.update).not.toHaveBeenCalled();
+      expect(mockRepositories.users.findById).toHaveBeenCalledWith(userId);
+      expect(mockRepositories.users.findByEmail).toHaveBeenCalledWith('taken@example.com');
+      expect(mockRepositories.users.update).not.toHaveBeenCalled();
     });
 
     it('should allow user to keep same email', async () => {
@@ -194,10 +214,14 @@ describe('UpdateUserUseCase', () => {
 
       const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
-      mockUsersRepo.findById.mockResolvedValue(existingUser);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(existingUser);
       // Don't call findByEmail since email hasn't changed
-      mockUsersRepo.update.mockResolvedValue(updatedUser);
-      mockRolesRepo.findByKeys.mockResolvedValue([adminRole]);
+      (mockRepositories.users.update as jest.Mock).mockResolvedValue(updatedUser);
+      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([adminRole]);
+      
+      mockUnitOfWork.execute.mockImplementation(async (work) => {
+        return work(mockRepositories);
+      });
 
       // Act
       const result = await updateUserUseCase.execute(input);
@@ -209,9 +233,9 @@ describe('UpdateUserUseCase', () => {
         expect(result.value.email).toBe('same@example.com');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith(userId);
-      expect(mockUsersRepo.findByEmail).not.toHaveBeenCalled(); // Should not check email since it's the same
-      expect(mockUsersRepo.update).toHaveBeenCalled();
+      expect(mockRepositories.users.findById).toHaveBeenCalledWith(userId);
+      expect(mockRepositories.users.findByEmail).not.toHaveBeenCalled(); // Should not check email since it's the same
+      expect(mockRepositories.users.update).toHaveBeenCalled();
     });
 
     it('should update only provided fields', async () => {
@@ -248,9 +272,13 @@ describe('UpdateUserUseCase', () => {
 
       const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
-      mockUsersRepo.findById.mockResolvedValue(existingUser);
-      mockUsersRepo.update.mockResolvedValue(updatedUser);
-      mockRolesRepo.findByKeys.mockResolvedValue([adminRole]);
+      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(existingUser);
+      (mockRepositories.users.update as jest.Mock).mockResolvedValue(updatedUser);
+      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([adminRole]);
+      
+      mockUnitOfWork.execute.mockImplementation(async (work) => {
+        return work(mockRepositories);
+      });
 
       // Act
       const result = await updateUserUseCase.execute(input);
@@ -263,7 +291,7 @@ describe('UpdateUserUseCase', () => {
         expect(result.value.phoneNumber).toBe('+1234567890'); // Unchanged
       }
 
-      expect(mockUsersRepo.update).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockRepositories.users.update).toHaveBeenCalledWith(expect.objectContaining({
         name: 'Only Name Updated',
         email: 'keep@example.com',
         phoneNumber: '+1234567890',

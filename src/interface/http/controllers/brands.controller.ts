@@ -33,7 +33,7 @@ import { isOk } from '../../../application/common/result';
 // Validation DTOs
 import { CreateBrandDto, UpdateBrandDto } from '../validation/brand.dto';
 import { Roles } from 'src/interface/decorators/roles.decorator';
-import { ROLES } from 'src/interface/constants/roles';
+import { ROLES } from 'src/domain/constants/roles';
 import { BRAND_NAME_ALREADY_EXISTS, BRAND_NOT_FOUND } from 'src/domain/errors/brand-errors';
 
 @Controller('brands')

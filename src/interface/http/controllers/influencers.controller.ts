@@ -36,7 +36,7 @@ import { isOk } from '../../../application/common/result';
 // Validation DTOs
 import { CreateInfluencerDto, UpdateInfluencerDto, UpdateSocialPlatformDto } from '../validation/influencer.dto';
 import { Roles } from '../../decorators/roles.decorator';
-import { ROLES } from '../../constants/roles';
+import { ROLES } from '../../../domain/constants/roles';
 import { INFLUENCER_NOT_FOUND, INFLUENCER_USERNAME_ALREADY_EXISTS, INFLUENCER_EMAIL_ALREADY_EXISTS } from '../../../domain/errors/influencer-errors';
 
 @Controller('influencers')
