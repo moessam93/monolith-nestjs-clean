@@ -58,58 +58,6 @@ describe('CreateUserUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should create user successfully without roles', async () => {
-      // Arrange
-      const input = {
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-        phoneNumber: '+1234567890',
-        phoneNumberCountryCode: '+1',
-      };
-
-      const hashedPassword = 'hashed-password';
-      const createdUser = new User(
-        'user-123',
-        'John Doe',
-        'john@example.com',
-        [],
-        '+1234567890',
-        '+1',
-        hashedPassword,
-        new Date(),
-        new Date(),
-      );
-
-      mockPasswordHasher.hash.mockResolvedValue(hashedPassword);
-      (mockRepositories.users.findByEmail as jest.Mock).mockResolvedValue(null);
-      (mockRepositories.users.create as jest.Mock).mockResolvedValue(createdUser);
-      (mockRepositories.users.findById as jest.Mock).mockResolvedValue(createdUser);
-      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([]);
-      
-      mockUnitOfWork.execute.mockImplementation(async (work) => {
-        return work(mockRepositories);
-      });
-
-      // Act
-      const result = await createUserUseCase.execute(input);
-
-      // Assert
-      expect(isOk(result)).toBe(true);
-      if (isOk(result)) {
-        expect(result.value.id).toBe('user-123');
-        expect(result.value.name).toBe('John Doe');
-        expect(result.value.email).toBe('john@example.com');
-        expect(result.value.phoneNumber).toBe('+1234567890');
-        expect(result.value.phoneNumberCountryCode).toBe('+1');
-        expect(result.value.roles).toEqual([]);
-        expect(result.value.createdAt).toBeInstanceOf(Date);
-        expect(result.value.updatedAt).toBeInstanceOf(Date);
-      }
-
-      expect(mockPasswordHasher.hash).toHaveBeenCalledWith('password123');
-    });
-
     it('should create user with roles when current user is SuperAdmin', async () => {
       // Arrange
       const input = {

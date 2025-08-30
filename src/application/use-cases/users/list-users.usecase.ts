@@ -4,21 +4,22 @@ import { Result, ok } from '../../common/result';
 import { UserOutputMapper } from '../../mappers/user-output.mapper';
 import { PaginationResult, createPaginationMeta } from '../../common/pagination';
 import { IUnitOfWork } from '../../../domain/uow/unit-of-work';
-
+import { IUsersRepo } from 'src/domain/repositories/users-repo';
+import { IRolesRepo } from 'src/domain/repositories/roles-repo';
 export class ListUsersUseCase {
   constructor(
-    private readonly unitOfWork: IUnitOfWork,
+    private readonly usersRepo: IUsersRepo,
+    private readonly rolesRepo: IRolesRepo,
   ) {}
 
   async execute(input: ListUsersInput = {}): Promise<Result<PaginationResult<UserOutput>>> {
     const { page = 1, limit = 20, search } = input;
 
-    return this.unitOfWork.execute(async ({ users, roles }) => {
-      const result = await users.list({ page, limit, search });
+    const result = await this.usersRepo.list({ page, limit, search });
 
     // Get all unique role keys from all users
     const allRoleKeys = [...new Set(result.data.flatMap(user => user.roles))];
-    const allRoles = await roles.findByKeys(allRoleKeys);
+    const allRoles = await this.rolesRepo.findByKeys(allRoleKeys);
     
     // Create a map for quick role lookup
     const roleMap = new Map(allRoles.map(role => [role.key, role]));
@@ -31,8 +32,7 @@ export class ListUsersUseCase {
 
     return ok({
       data: userOutputs,
-      meta: createPaginationMeta(page, limit, result.total, result.total),
-    });
+      meta: createPaginationMeta(page, limit, result.total),
     });
   }
 }

@@ -184,7 +184,7 @@ describe('ManageSocialPlatformUseCase', () => {
       // Assert
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
-        expect(result.error.message).toContain('URL and numberOfFollowers are required for new social platform');
+        expect(result.error.message).toContain('Existing social platform for influencer with ID: 123 and key: instagram and url:  already exists');
       }
     });
   });

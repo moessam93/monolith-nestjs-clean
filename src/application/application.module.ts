@@ -59,8 +59,8 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.ListUsersUseCase,
-      useFactory: (unitOfWork: any) => new ListUsersUseCase(unitOfWork),
-      inject: [TOKENS.UnitOfWork],
+      useFactory: (usersRepo: any, rolesRepo: any) => new ListUsersUseCase(usersRepo, rolesRepo),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
     },
     {
       provide: TOKENS.UpdateUserUseCase,
@@ -69,9 +69,9 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.AssignRolesUseCase,
-      useFactory: (unitOfWork: any) =>
-        new AssignRolesUseCase(unitOfWork),
-      inject: [TOKENS.UnitOfWork]
+      useFactory: (usersRepo: any, rolesRepo: any) =>
+        new AssignRolesUseCase(usersRepo, rolesRepo),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo]
     },
     
     // Beat Use Cases
@@ -126,8 +126,8 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.DeleteBrandUseCase,
-      useFactory: (brandsRepo: any) => new DeleteBrandUseCase(brandsRepo),
-      inject: [TOKENS.BrandsRepo],
+      useFactory: (brandsRepo: any, beatsRepo: any) => new DeleteBrandUseCase(brandsRepo, beatsRepo),
+      inject: [TOKENS.BrandsRepo, TOKENS.BeatsRepo],
     },
     
     // Influencer Use Cases

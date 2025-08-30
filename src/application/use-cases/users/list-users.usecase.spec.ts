@@ -5,17 +5,17 @@ import { User } from '../../../domain/entities/user';
 import { Role } from '../../../domain/entities/role';
 import { UserOutputMapper } from '../../mappers/user-output.mapper';
 import { isOk } from '../../common/result';
-import { IUnitOfWork, IRepositories } from '../../../domain/uow/unit-of-work';
 
 // Mock the UserOutputMapper
 jest.mock('../../mappers/user-output.mapper');
 
 describe('ListUsersUseCase', () => {
   let listUsersUseCase: ListUsersUseCase;
-  let mockUnitOfWork: jest.Mocked<IUnitOfWork>;
-  let mockRepositories: jest.Mocked<IRepositories> = {
-    users: {
-      findByEmail: jest.fn(),
+  let mockUsersRepo: jest.Mocked<IUsersRepo>;
+  let mockRolesRepo: jest.Mocked<IRolesRepo>;
+
+  beforeEach(() => {
+    mockUsersRepo = {
       findById: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
@@ -25,8 +25,9 @@ describe('ListUsersUseCase', () => {
       exists: jest.fn(),
       existsByEmail: jest.fn(),
       count: jest.fn(),
-    },
-    roles: {
+      findByEmail: jest.fn(),
+    };
+    mockRolesRepo = {
       findByKeys: jest.fn(),
       findByKey: jest.fn(),
       exists: jest.fn(),
@@ -35,17 +36,13 @@ describe('ListUsersUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-    },
-    beats: {} as any,
-    brands: {} as any,
-    influencers: {} as any,
-    socialPlatforms: {} as any,
-  };
+    }
+  });
   let mockUserOutputMapper: jest.Mocked<typeof UserOutputMapper>;
 
   beforeEach(() => {
 
-    mockRepositories.roles = {
+    mockRolesRepo = {
       findByKeys: jest.fn(),
       findByKey: jest.fn(),
       exists: jest.fn(),
@@ -54,15 +51,11 @@ describe('ListUsersUseCase', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-    };
+    }
 
     mockUserOutputMapper = UserOutputMapper as jest.Mocked<typeof UserOutputMapper>;
 
-    mockUnitOfWork = {
-      execute: jest.fn(),
-    };
-
-    listUsersUseCase = new ListUsersUseCase(mockUnitOfWork);
+    listUsersUseCase = new ListUsersUseCase(mockUsersRepo, mockRolesRepo);
   });
 
   describe('execute', () => {
@@ -129,15 +122,12 @@ describe('ListUsersUseCase', () => {
         totalFiltered: 25,
       };
 
-      (mockRepositories.users.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue(roles);
+      (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
+      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue(roles);
       mockUserOutputMapper.toOutput
         .mockReturnValueOnce(userOutputs[0])
         .mockReturnValueOnce(userOutputs[1]);
       
-      mockUnitOfWork.execute.mockImplementation(async (work) => {
-        return work(mockRepositories);
-      });
 
       // Act
       const result = await listUsersUseCase.execute(input);
@@ -163,12 +153,12 @@ describe('ListUsersUseCase', () => {
         expect(result.value.data[1].roles[0].key).toBe('Executive');
       }
 
-      expect(mockRepositories.users.list).toHaveBeenCalledWith({
+      expect(mockUsersRepo.list).toHaveBeenCalledWith({
         page: 1,
         limit: 20,
         search: undefined,
       });
-      expect(mockRepositories.roles.findByKeys).toHaveBeenCalledWith(['Admin', 'Executive']);
+      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin', 'Executive']);
       expect(mockUserOutputMapper.toOutput).toHaveBeenCalledTimes(2);
     });
 
@@ -215,13 +205,10 @@ describe('ListUsersUseCase', () => {
         totalFiltered: 3, // 3 users match search
       };
 
-      (mockRepositories.users.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue(roles);
+      (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
+      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue(roles);
       mockUserOutputMapper.toOutput.mockReturnValue(userOutput);
       
-      mockUnitOfWork.execute.mockImplementation(async (work) => {
-        return work(mockRepositories);
-      });
 
       // Act
       const result = await listUsersUseCase.execute(input);
@@ -238,12 +225,12 @@ describe('ListUsersUseCase', () => {
         expect(result.value.meta.hasPreviousPage).toBe(true);
       }
 
-      expect(mockRepositories.users.list).toHaveBeenCalledWith({
+      expect(mockUsersRepo.list).toHaveBeenCalledWith({
         page: 2,
         limit: 5,
         search: 'john',
       });
-      expect(mockRepositories.roles.findByKeys).toHaveBeenCalledWith(['Admin']);
+      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin']);
     });
 
     it('should return empty list when no users found', async () => {
@@ -258,12 +245,8 @@ describe('ListUsersUseCase', () => {
         totalFiltered: 0,
       };
 
-      (mockRepositories.users.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRepositories.roles.findByKeys as jest.Mock).mockResolvedValue([]);
-      
-      mockUnitOfWork.execute.mockImplementation(async (work) => {
-        return work(mockRepositories);
-      });
+      (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
+      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue([]);
 
       // Act
       const result = await listUsersUseCase.execute(input);
@@ -278,12 +261,12 @@ describe('ListUsersUseCase', () => {
         expect(result.value.meta.hasPreviousPage).toBe(false);
       }
 
-      expect(mockRepositories.users.list).toHaveBeenCalledWith({
+      expect(mockUsersRepo.list).toHaveBeenCalledWith({
         page: 1,
         limit: 20,
         search: 'nonexistent',
       });
-      expect(mockRepositories.roles.findByKeys).toHaveBeenCalledWith([]);
+      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith([]);
     });
   });
 });

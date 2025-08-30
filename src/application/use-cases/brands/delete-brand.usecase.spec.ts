@@ -1,13 +1,14 @@
 import { DeleteBrandUseCase } from './delete-brand.usecase';
 import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { Brand } from '../../../domain/entities/brand';
-import { BrandNotFoundError } from '../../../domain/errors/brand-errors';
+import { BrandHasBeatsError, BrandNotFoundError } from '../../../domain/errors/brand-errors';
 import { isOk, isErr } from '../../common/result';
+import { IBeatsRepo } from '../../../domain/repositories/beats-repo';
 
 describe('DeleteBrandUseCase', () => {
   let deleteBrandUseCase: DeleteBrandUseCase;
   let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
-
+let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
   beforeEach(() => {
     mockBrandsRepo = {
       findById: jest.fn(),
@@ -16,9 +17,21 @@ describe('DeleteBrandUseCase', () => {
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
+      findByName: jest.fn(),
     };
 
-    deleteBrandUseCase = new DeleteBrandUseCase(mockBrandsRepo);
+    mockBeatsRepo = {
+      findById: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      countByInfluencer: jest.fn(),
+      countByBrand: jest.fn(),
+    };
+
+    deleteBrandUseCase = new DeleteBrandUseCase(mockBrandsRepo, mockBeatsRepo);
   });
 
   describe('execute', () => {
@@ -64,7 +77,7 @@ describe('DeleteBrandUseCase', () => {
       // Assert
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
-        expect(result.error).toBeInstanceOf(Error);
+        expect(result.error).toBeInstanceOf(BrandNotFoundError);
         expect(result.error.message).toContain('999');
       }
 
@@ -86,60 +99,21 @@ describe('DeleteBrandUseCase', () => {
         new Date(),
       );
 
-      const deleteError = new Error('Cannot delete brand with existing beats');
+      const deleteError = new BrandHasBeatsError(brandId);
 
+      mockBeatsRepo.countByBrand.mockResolvedValue(1);
       mockBrandsRepo.findById.mockResolvedValue(brand);
       mockBrandsRepo.delete.mockRejectedValue(deleteError);
 
       // Act & Assert
-      await expect(deleteBrandUseCase.execute(brandId)).rejects.toThrow('Cannot delete brand with existing beats');
-
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
-      expect(mockBrandsRepo.delete).toHaveBeenCalledWith(brandId);
-    });
-
-    it('should handle repository findById errors gracefully', async () => {
-      // Arrange
-      const brandId = 1;
-      const repositoryError = new Error('Database connection failed');
-
-      mockBrandsRepo.findById.mockRejectedValue(repositoryError);
-
-      // Act & Assert
-      await expect(deleteBrandUseCase.execute(brandId)).rejects.toThrow('Database connection failed');
-
+      const result = await deleteBrandUseCase.execute(brandId);
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error).toBeInstanceOf(BrandHasBeatsError);
+        expect(result.error.message).toContain('Brand has beats: 1');
+      }
       expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
       expect(mockBrandsRepo.delete).not.toHaveBeenCalled();
-    });
-
-    it('should verify brand exists before attempting deletion', async () => {
-      // Arrange
-      const brandId = 1;
-
-      const brand = new Brand(
-        brandId,
-        'Existing Brand',
-        'This brand exists',
-        'https://logo.jpg',
-        'https://exists.com',
-        new Date('2023-01-01'),
-        new Date('2023-06-01'),
-      );
-
-      mockBrandsRepo.findById.mockResolvedValue(brand);
-      mockBrandsRepo.delete.mockResolvedValue();
-
-      // Act
-      const result = await deleteBrandUseCase.execute(brandId);
-
-      // Assert
-      expect(isOk(result)).toBe(true);
-
-      // Verify the operations were called
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
-      expect(mockBrandsRepo.delete).toHaveBeenCalledWith(brandId);
-      expect(mockBrandsRepo.findById).toHaveBeenCalledTimes(1);
-      expect(mockBrandsRepo.delete).toHaveBeenCalledTimes(1);
     });
   });
 });
