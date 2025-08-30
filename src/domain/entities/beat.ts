@@ -10,21 +10,4 @@ export class Beat {
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}
-
-  updateCaption(caption: string | null): void {
-    this.caption = caption;
-  }
-
-  updateMedia(mediaUrl: string, thumbnailUrl: string): void {
-    this.mediaUrl = mediaUrl;
-    this.thumbnailUrl = thumbnailUrl;
-  }
-
-  updateStatus(statusKey: string): void {
-    this.statusKey = statusKey;
-  }
-
-  isActive(): boolean {
-    return this.statusKey === 'active';
-  }
 }
