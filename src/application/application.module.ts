@@ -59,19 +59,19 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.ListUsersUseCase,
-      useFactory: (usersRepo: any, rolesRepo: any) => new ListUsersUseCase(usersRepo, rolesRepo),
-      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
+      useFactory: (unitOfWork: any) => new ListUsersUseCase(unitOfWork),
+      inject: [TOKENS.UnitOfWork],
     },
     {
       provide: TOKENS.UpdateUserUseCase,
-      useFactory: (usersRepo: any, rolesRepo: any) => new UpdateUserUseCase(usersRepo, rolesRepo),
-      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
+      useFactory: (unitOfWork: any) => new UpdateUserUseCase(unitOfWork),
+      inject: [TOKENS.UnitOfWork],
     },
     {
       provide: TOKENS.AssignRolesUseCase,
-      useFactory: (usersRepo: any, rolesRepo: any) =>
-        new AssignRolesUseCase(usersRepo, rolesRepo),
-      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
+      useFactory: (unitOfWork: any) =>
+        new AssignRolesUseCase(unitOfWork),
+      inject: [TOKENS.UnitOfWork]
     },
     
     // Beat Use Cases
