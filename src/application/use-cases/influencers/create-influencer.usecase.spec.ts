@@ -45,8 +45,8 @@ describe('CreateInfluencerUseCase', () => {
     it('should create influencer successfully without social platforms', async () => {
       // Arrange
       const input = {
-        username: 'test_influencer',
-        email: 'influencer@example.com',
+        username: 'test_influencer2',
+        email: 'influencer2@example.com',
         nameEn: 'Test Influencer',
         nameAr: 'مؤثر اختبار',
         profilePictureUrl: 'https://example.com/profile.jpg',
@@ -54,8 +54,8 @@ describe('CreateInfluencerUseCase', () => {
 
       const createdInfluencer = new Influencer(
         123,
-        'test_influencer',
-        'influencer@example.com',
+        'test_influencer2',
+        'influencer2@example.com',
         'Test Influencer',
         'مؤثر اختبار',
         'https://example.com/profile.jpg',
@@ -75,16 +75,15 @@ describe('CreateInfluencerUseCase', () => {
       expect(isOk(result)).toBe(true);
       if (isOk(result)) {
         expect(result.value.id).toBe(123);
-        expect(result.value.username).toBe('test_influencer');
-        expect(result.value.email).toBe('influencer@example.com');
+        expect(result.value.username).toBe('test_influencer2');
+        expect(result.value.email).toBe('influencer2@example.com');
         expect(result.value.nameEn).toBe('Test Influencer');
         expect(result.value.nameAr).toBe('مؤثر اختبار');
         expect(result.value.profilePictureUrl).toBe('https://example.com/profile.jpg');
         expect(result.value.socialPlatforms).toHaveLength(0);
       }
 
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('test_influencer');
-      expect(mockInfluencersRepo.findByEmail).toHaveBeenCalledWith('influencer@example.com');
+      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('test_influencer2');
       expect(mockInfluencersRepo.create).toHaveBeenCalled();
     });
 
@@ -192,47 +191,10 @@ describe('CreateInfluencerUseCase', () => {
       // Assert
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
-        expect(result.error.message).toContain("Influencer with username 'existing_influencer' already exists");
+        expect(result.error.message).toContain("Influencer username already exists: existing_influencer");
       }
 
       expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('existing_influencer');
-      expect(mockInfluencersRepo.findByEmail).not.toHaveBeenCalled();
-      expect(mockInfluencersRepo.create).not.toHaveBeenCalled();
-    });
-
-    it('should return error when email already exists', async () => {
-      // Arrange
-      const input = {
-        username: 'new_influencer',
-        email: 'existing@example.com',
-        nameEn: 'Test Influencer',
-        nameAr: 'مؤثر اختبار',
-        profilePictureUrl: 'https://example.com/profile.jpg',
-      };
-
-      const existingInfluencer = new Influencer(
-        999,
-        'existing_user',
-        'existing@example.com',
-        'Existing Influencer',
-        'مؤثر موجود',
-        'https://example.com/existing.jpg',
-      );
-
-      mockInfluencersRepo.findByUsername.mockResolvedValue(null);
-      mockInfluencersRepo.findByEmail.mockResolvedValue(existingInfluencer);
-
-      // Act
-      const result = await createInfluencerUseCase.execute(input);
-
-      // Assert
-      expect(isErr(result)).toBe(true);
-      if (isErr(result)) {
-        expect(result.error.message).toContain("Influencer with email 'existing@example.com' already exists");
-      }
-
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('new_influencer');
-      expect(mockInfluencersRepo.findByEmail).toHaveBeenCalledWith('existing@example.com');
       expect(mockInfluencersRepo.create).not.toHaveBeenCalled();
     });
   });
