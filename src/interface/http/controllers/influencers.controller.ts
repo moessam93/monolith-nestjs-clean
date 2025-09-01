@@ -37,7 +37,7 @@ import { isOk } from '../../../application/common/result';
 import { CreateInfluencerDto, UpdateInfluencerDto, UpdateSocialPlatformDto } from '../validation/influencer.dto';
 import { Roles } from '../../decorators/roles.decorator';
 import { ROLES } from '../../../domain/constants/roles';
-import { INFLUENCER_NOT_FOUND, INFLUENCER_USERNAME_ALREADY_EXISTS, INFLUENCER_EMAIL_ALREADY_EXISTS } from '../../../domain/errors/influencer-errors';
+import { INFLUENCER_NOT_FOUND, INFLUENCER_USERNAME_ALREADY_EXISTS, INFLUENCER_EMAIL_ALREADY_EXISTS, EXISTING_SOCIAL_PLATFORM_FOR_INFLUENCER } from '../../../domain/errors/influencer-errors';
 
 @Controller('influencers')
 export class InfluencersController {
@@ -185,6 +185,14 @@ export class InfluencersController {
       });
     }
     else if (result.error.code === INFLUENCER_EMAIL_ALREADY_EXISTS) {
+      throw new BadRequestException({
+        message: result.error.message,
+        error: 'Bad Request',
+        statusCode: HttpStatus.BAD_REQUEST,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    else if (result.error.code === EXISTING_SOCIAL_PLATFORM_FOR_INFLUENCER) {
       throw new BadRequestException({
         message: result.error.message,
         error: 'Bad Request',

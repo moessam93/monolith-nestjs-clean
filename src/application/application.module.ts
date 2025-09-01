@@ -149,8 +149,8 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.UpdateInfluencerUseCase,
-      useFactory: (influencersRepo: any) => new UpdateInfluencerUseCase(influencersRepo),
-      inject: [TOKENS.InfluencersRepo],
+      useFactory: (influencersRepo: any, socialPlatformsRepo: any) => new UpdateInfluencerUseCase(influencersRepo, socialPlatformsRepo),
+      inject: [TOKENS.InfluencersRepo, TOKENS.SocialPlatformsRepo],
     },
     {
       provide: TOKENS.DeleteInfluencerUseCase,
