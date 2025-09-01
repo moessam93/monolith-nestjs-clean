@@ -155,6 +155,13 @@ export class InfluencersController {
       nameEn: updateInfluencerDto.nameEn,
       nameAr: updateInfluencerDto.nameAr,
       profilePictureUrl: updateInfluencerDto.profilePictureUrl,
+      socialPlatforms: updateInfluencerDto.socialPlatforms?.map(sp => ({
+        id: sp.id,
+        influencerId: parseInt(id),
+        key: sp.key,
+        url: sp.url,
+        numberOfFollowers: sp.numberOfFollowers,
+      })),
     };
 
     const result = await this.updateInfluencerUseCase.execute(input);

@@ -13,6 +13,7 @@
     "start:staging": "cross-env NODE_ENV=staging nest start --watch",
     "start:prod": "cross-env NODE_ENV=production nest start --watch",
     "start:testing": "cross-env NODE_ENV=testing nest start --watch",
+    "start:debug": "cross-env NODE_ENV=development nest start --watch --debug --inspect=9229",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "cross-env NODE_ENV=testing jest",
     "test:watch": "cross-env NODE_ENV=testing jest --watch",

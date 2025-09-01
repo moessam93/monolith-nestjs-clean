@@ -43,7 +43,7 @@ Content-Type: application/json
 ### Note: Copy JWT token from login response and use in Authorization header
 ### Example: Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 
-@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYzg3ZTg0MC1lOTI1LTQ5ODItYWQ3Ni1lZjJmM2FiM2Q2NjMiLCJlbWFpbCI6ImFkbWluQGNyb3dkYWRzLmNvbSIsIm5hbWUiOiJTdXBlciBBZG1pbiIsInJvbGVzIjpbIlN1cGVyQWRtaW4iXSwiaWF0IjoxNzU2MzM0OTExLCJleHAiOjE3NTYzMzY3MTF9.ZaFi3V30Y3xpKM5_oiKRIeNPRZjLQS-s4xIS5bCFDk_RfR0tYfyYK4hsLQypvLpxSULg2y85RBAEP1ICYk83BkcgurIRJOBhA53g_NtA-1S3AHil1T0wdJtiDsj1YhNKdKa67vIdcNfW5xz0fISHrTXDFOcZfI8pbJHaAG0sVz6LLAmtWEh2XhEWIYc50vkooHIpxKzzfIHD1XvnHxNkZ6Oh7gZtLJaCqPwRsXvtgbebNqlnaiS8zIH97i4K2P5qoPfxH6IZJixNgrJsFCxvjG1mUXGLX2GeFSeNYMDRh_0MOZkebunuUL2KDUoE6UYvsIJtmHk_j_HWBkdsvXUv1g
+@authToken = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYzg3ZTg0MC1lOTI1LTQ5ODItYWQ3Ni1lZjJmM2FiM2Q2NjMiLCJlbWFpbCI6ImFkbWluQGNyb3dkYWRzLmNvbSIsIm5hbWUiOiJTdXBlciBBZG1pbiIsInJvbGVzIjpbIlN1cGVyQWRtaW4iXSwiaWF0IjoxNzU2NzMwMzIyLCJleHAiOjE3NTY3MzIxMjJ9.eVja_oPEiLTQenyI6pp7B1YpOB_RzE3lH6n1TnrP23tIF_yNMn30BCLNnFhrYiInS7O0ja8rgofKc0zOd9Sfy_geg7e3CwpuRKXwKhbstZzOYKac3MQiB2wD2isYZY_UsGWd_7d9CVMIZVB2c2j6IcKPrWQo62H8dSPjZKKiVWfi5srJ6AuaWDYCV2tyOEscrZo0Wg32dFltsrZzM0_n-_Gi6M4BxFiEPPU8IYJW8Dt3fnHXUi_yXqiWVvtZGBn4_LZbqLlcXqN3W-Yg8Xgc3vzxknfzeIl0ZuUcwJJxyOhxVJojH3Our7aRCjpLiQHuk5ncPNTQdKj9TPUKSCA6TQ
 ### Create first SuperAdmin user (Public - Bootstrap only)
 ### This endpoint is public only for creating the first user
 POST http://localhost:3001/api/users
@@ -196,10 +196,10 @@ Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "username": "johndoe",
-  "email": "john@example.com",
-  "nameEn": "John Doe",
-  "nameAr": "جون دو",
+  "username": "essam93",
+  "email": "essam@gmail.com",
+  "nameEn": "Essam",
+  "nameAr": "عصام",
   "profilePictureUrl": "https://example.com/profiles/johndoe.jpg",
   "socialPlatforms": [
     {
@@ -246,27 +246,17 @@ Authorization: Bearer {{authToken}}
 }
 
 ### Update influencer (replace social platforms)
-PATCH http://localhost:3001/api/influencers/1
+PATCH http://localhost:3001/api/influencers/3
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
 
 {
-  "nameEn": "John Doe Updated",
   "socialPlatforms": [
     {
-      "key": "instagram",
-      "url": "https://instagram.com/johndoe_official",
-      "numberOfFollowers": 75000
-    },
-    {
+      "id": 8,
       "key": "youtube",
-      "url": "https://youtube.com/johndoe_official",
+      "url": "https://youtube.com/essam93",
       "numberOfFollowers": 15000
-    },
-    {
-      "key": "twitter",
-      "url": "https://twitter.com/johndoe",
-      "numberOfFollowers": 5000
     }
   ]
 }

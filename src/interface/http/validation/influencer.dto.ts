@@ -55,9 +55,19 @@ export class UpdateInfluencerDto {
   @IsOptional()
   @IsUrl()
   profilePictureUrl?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateSocialPlatformDto)
+  socialPlatforms?: UpdateSocialPlatformDto[];
 }
 
 export class UpdateSocialPlatformDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
   @IsString()
   key: string;
 

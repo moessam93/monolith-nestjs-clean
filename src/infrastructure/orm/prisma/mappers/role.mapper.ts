@@ -1,37 +1,25 @@
 import { Role } from '../../../../domain/entities/role';
+import { BaseMapper } from './base.mapper';
 
 export class RoleMapper {
+  // Using generic methods - much cleaner!
   static toDomain(prismaRole: any): Role {
-    return new Role(
-      prismaRole.id,
-      prismaRole.key,
-      prismaRole.nameEn,
-      prismaRole.nameAr,
+    return BaseMapper.genericToDomain(
+      Role,
+      prismaRole,
+      ['id', 'key', 'nameEn', 'nameAr']
     );
   }
 
   static toPrisma(role: Role) {
-    return {
-      id: role.id,
-      key: role.key,
-      nameEn: role.nameEn,
-      nameAr: role.nameAr,
-    };
+    return BaseMapper.genericToPrisma(role);
   }
 
   static toPrismaCreate(role: Role) {
-    const data = RoleMapper.toPrisma(role);
-    // Remove id for creation if it's 0 or undefined
-    if (!data.id) {
-      delete (data as any).id;
-    }
-    return data;
+    return BaseMapper.baseToPrismaCreate(role, RoleMapper.toPrisma);
   }
 
   static toPrismaUpdate(role: Role) {
-    const data = RoleMapper.toPrisma(role);
-    // Remove id for updates
-    delete (data as any).id;
-    return data;
+    return BaseMapper.baseToPrismaUpdate(role, RoleMapper.toPrisma);
   }
 }

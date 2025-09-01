@@ -1,49 +1,25 @@
 import { Beat } from '../../../../domain/entities/beat';
+import { BaseMapper } from './base.mapper';
 
 export class BeatMapper {
+  // Using generic methods for maximum code reuse
   static toDomain(prismaBeat: any): Beat {
-    return new Beat(
-      prismaBeat.id,
-      prismaBeat.caption,
-      prismaBeat.mediaUrl,
-      prismaBeat.thumbnailUrl,
-      prismaBeat.statusKey,
-      prismaBeat.influencerId,
-      prismaBeat.brandId,
-      prismaBeat.createdAt,
-      prismaBeat.updatedAt,
+    return BaseMapper.genericToDomain(
+      Beat,
+      prismaBeat,
+      ['id', 'caption', 'mediaUrl', 'thumbnailUrl', 'statusKey', 'influencerId', 'brandId', 'createdAt', 'updatedAt']
     );
   }
 
   static toPrisma(beat: Beat) {
-    return {
-      id: beat.id,
-      caption: beat.caption,
-      mediaUrl: beat.mediaUrl,
-      thumbnailUrl: beat.thumbnailUrl,
-      statusKey: beat.statusKey,
-      influencerId: beat.influencerId,
-      brandId: beat.brandId,
-      createdAt: beat.createdAt,
-      updatedAt: beat.updatedAt,
-    };
+    return BaseMapper.genericToPrisma(beat);
   }
 
   static toPrismaCreate(beat: Beat) {
-    const data = BeatMapper.toPrisma(beat);
-    // Remove id for creation if it's 0 or undefined
-    if (!data.id) {
-      delete (data as any).id;
-    }
-    return data;
+    return BaseMapper.baseToPrismaCreate(beat, BeatMapper.toPrisma);
   }
 
   static toPrismaUpdate(beat: Beat) {
-    const data = BeatMapper.toPrisma(beat);
-    // Remove id and timestamps for updates
-    delete (data as any).id;
-    delete (data as any).createdAt;
-    delete (data as any).updatedAt;
-    return data;
+    return BaseMapper.baseToPrismaUpdate(beat, BeatMapper.toPrisma);
   }
 }
