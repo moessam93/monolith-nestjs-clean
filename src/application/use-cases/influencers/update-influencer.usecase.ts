@@ -1,15 +1,17 @@
 import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
+import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platforms-repo';
 import { UpdateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
-import { InfluencerNotFoundError, InfluencerUsernameAlreadyExistsError, InfluencerEmailAlreadyExistsError } from '../../../domain/errors/influencer-errors';
+import { InfluencerNotFoundError, InfluencerUsernameAlreadyExistsError, InfluencerEmailAlreadyExistsError, ExistingSocialPlatformForInfluencerError } from '../../../domain/errors/influencer-errors';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 
 export class UpdateInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IInfluencersRepo,
+    private readonly socialPlatformsRepo: ISocialPlatformsRepo,
   ) {}
 
-  async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerNotFoundError | InfluencerUsernameAlreadyExistsError | InfluencerEmailAlreadyExistsError>> {
+  async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerNotFoundError | InfluencerUsernameAlreadyExistsError | InfluencerEmailAlreadyExistsError | ExistingSocialPlatformForInfluencerError>> {
     const { id, username, email, nameEn, nameAr, profilePictureUrl, socialPlatforms } = input;
 
     // Check if influencer exists
@@ -78,6 +80,14 @@ export class UpdateInfluencerUseCase {
           new Date()
         )
       );
+
+      // Check if new social platforms already exist for this influencer
+      for (const spInput of newSocialPlatforms) {
+        const existingSocialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(influencer.id, spInput.key);
+        if (existingSocialPlatform) {
+          return err(new ExistingSocialPlatformForInfluencerError(influencer.id, spInput.key, spInput.url));
+        }
+      }
 
       // Add new social platforms to the existing list
       influencer.socialPlatforms = [...influencer.socialPlatforms, ...newSocialPlatforms];
