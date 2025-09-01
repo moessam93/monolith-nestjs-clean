@@ -2,6 +2,7 @@ import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo'
 import { UpdateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { InfluencerNotFoundError, InfluencerUsernameAlreadyExistsError, InfluencerEmailAlreadyExistsError } from '../../../domain/errors/influencer-errors';
+import { SocialPlatform } from '../../../domain/entities/social-platform';
 
 export class UpdateInfluencerUseCase {
   constructor(
@@ -9,7 +10,7 @@ export class UpdateInfluencerUseCase {
   ) {}
 
   async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerNotFoundError | InfluencerUsernameAlreadyExistsError | InfluencerEmailAlreadyExistsError>> {
-    const { id, username, email, nameEn, nameAr, profilePictureUrl } = input;
+    const { id, username, email, nameEn, nameAr, profilePictureUrl, socialPlatforms } = input;
 
     // Check if influencer exists
     const influencer = await this.influencersRepo.findById(id);
@@ -40,6 +41,47 @@ export class UpdateInfluencerUseCase {
     if (nameAr !== undefined) influencer.nameAr = nameAr;
     if (profilePictureUrl !== undefined) influencer.profilePictureUrl = profilePictureUrl;
 
+    if (socialPlatforms !== undefined) {
+      // Identify new social platforms (id is undefined, null, or 0)
+      const newSocialPlatformInputs = socialPlatforms.filter(sp => 
+        !sp.id || sp.id === 0 || sp.id === null || sp.id === undefined
+      );
+
+      // Identify existing social platforms to update (id is a valid number > 0)
+      const platformsToUpdate = socialPlatforms.filter(sp => 
+        sp.id !== undefined && sp.id !== null && sp.id > 0
+      );
+
+      // Update existing social platforms in place
+      platformsToUpdate.forEach(platformUpdate => {
+        const existingSocialPlatform = influencer.socialPlatforms.find(esp => esp.id === platformUpdate.id);
+        if (existingSocialPlatform) {
+          // Update properties only if they are provided in the update
+          if (platformUpdate.url !== undefined) {
+            existingSocialPlatform.url = platformUpdate.url;
+          }
+          if (platformUpdate.numberOfFollowers !== undefined) {
+            existingSocialPlatform.numberOfFollowers = platformUpdate.numberOfFollowers;
+          }
+        }
+      });
+
+      // Create new SocialPlatform objects for new platforms
+      const newSocialPlatforms = newSocialPlatformInputs.map(sp => 
+        new SocialPlatform(
+          0, // ID will be assigned by repository
+          sp.key,
+          sp.url || '', // Default to empty string if not provided
+          sp.numberOfFollowers || 0, // Default to 0 if not provided
+          influencer.id,
+          new Date(),
+          new Date()
+        )
+      );
+
+      // Add new social platforms to the existing list
+      influencer.socialPlatforms = [...influencer.socialPlatforms, ...newSocialPlatforms];
+    }
     // Save updated influencer
     const updatedInfluencer = await this.influencersRepo.update(influencer);
 

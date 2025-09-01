@@ -96,9 +96,46 @@ export class PrismaInfluencersRepo implements IInfluencersRepo {
 
   async update(influencer: Influencer): Promise<Influencer> {
     const data = InfluencerMapper.toPrismaUpdate(influencer);
+    
+    // Handle social platforms separately
+    const socialPlatformsData: any = {};
+    
+    if (influencer.socialPlatforms && influencer.socialPlatforms.length > 0) {
+      // Separate new and existing social platforms
+      const newSocialPlatforms = influencer.socialPlatforms.filter(sp => 
+        !sp.id || sp.id === 0
+      );
+      const existingSocialPlatforms = influencer.socialPlatforms.filter(sp => 
+        sp.id && sp.id > 0
+      );
+
+      // Prepare create operations for new social platforms
+      if (newSocialPlatforms.length > 0) {
+        socialPlatformsData.create = newSocialPlatforms.map(sp => ({
+          key: sp.key,
+          url: sp.url,
+          numberOfFollowers: sp.numberOfFollowers,
+        }));
+      }
+
+      // Prepare update operations for existing social platforms
+      if (existingSocialPlatforms.length > 0) {
+        socialPlatformsData.update = existingSocialPlatforms.map(sp => ({
+          where: { id: sp.id },
+          data: {
+            url: sp.url,
+            numberOfFollowers: sp.numberOfFollowers,
+          }
+        }));
+      }
+    }
+
     const updatedInfluencer = await this.prisma.influencer.update({
       where: { id: influencer.id },
-      data,
+      data: {
+        ...data,
+        ...(Object.keys(socialPlatformsData).length > 0 && { socialPlatforms: socialPlatformsData })
+      },
       include: {
         socialPlatforms: true,
       },

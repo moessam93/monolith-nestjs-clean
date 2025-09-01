@@ -1,56 +1,49 @@
 import { User } from '../../../../domain/entities/user';
+import { BaseMapper } from './base.mapper';
 
 export class UserMapper {
   static toDomain(prismaUser: any): User {
-    const roles = (prismaUser.userRoles ?? [])
-      .map((userRole: any) => userRole.role?.key)
-      .filter(Boolean);
-
-    return new User(
-      prismaUser.id,
-      prismaUser.name,
-      prismaUser.email,
-      roles,
-      prismaUser.phoneNumber,
-      prismaUser.phoneNumberCountryCode,
-      prismaUser.passwordHash,
-      prismaUser.createdAt,
-      prismaUser.updatedAt,
+    return BaseMapper.genericToDomainWithProcessors(
+      User,
+      prismaUser,
+      ['id', 'name', 'email', 'userRoles', 'phoneNumber', 'phoneNumberCountryCode', 'passwordHash', 'createdAt', 'updatedAt'],
+      {
+        userRoles: (userRolesArray: any[]) => 
+          (userRolesArray ?? [])
+            .map((userRole: any) => userRole.role?.key)
+            .filter(Boolean)
+      }
     );
   }
 
   static toPrisma(user: User) {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber || null,
-      phoneNumberCountryCode: user.phoneNumberCountryCode || null,
-      passwordHash: user.passwordHash!,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return BaseMapper.genericToPrismaWithProcessors(
+      user,
+      [], // No fields to exclude
+      {
+        // Convert empty/falsy values to null for optional fields
+        phoneNumber: (value: any) => value || null,
+        phoneNumberCountryCode: (value: any) => value || null,
+        // Ensure passwordHash is properly typed (non-null assertion)
+        passwordHash: (value: any) => value!,
+      }
+    );
   }
 
   static toPrismaCreate(user: User) {
-    const data = UserMapper.toPrisma(user);
-    // Remove id for creation if it's 0 or undefined
-    if (!data.id) {
-      delete (data as any).id;
-    }
-    // Ensure passwordHash is defined for creation
-    if (!data.passwordHash) {
-      throw new Error('Password hash is required for user creation');
-    }
-    return data;
+    return BaseMapper.baseToPrismaCreate(
+      user,
+      UserMapper.toPrisma,
+      (data) => {
+        // Entity-specific validation for user creation
+        if (!data.passwordHash) {
+          throw new Error('Password hash is required for user creation');
+        }
+      }
+    );
   }
 
   static toPrismaUpdate(user: User) {
-    const data = UserMapper.toPrisma(user);
-    // Remove id and timestamps for updates
-    delete (data as any).id;
-    delete (data as any).createdAt;
-    delete (data as any).updatedAt;
-    return data;
+    return BaseMapper.baseToPrismaUpdate(user, UserMapper.toPrisma);
   }
 }

@@ -14,6 +14,7 @@ export interface UpdateInfluencerInput {
   nameEn?: string;
   nameAr?: string;
   profilePictureUrl?: string;
+  socialPlatforms?: UpdateSocialPlatformInput[];
 }
 
 export interface InfluencerOutput {
@@ -44,6 +45,7 @@ export interface CreateSocialPlatformInput {
 }
 
 export interface UpdateSocialPlatformInput {
+  id?: number;
   influencerId: number;
   key: string;
   url?: string;

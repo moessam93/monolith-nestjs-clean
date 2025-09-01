@@ -1,0 +1,23 @@
+import { BaseSpecification } from "../specifications/base-specification";
+
+// domain/repositories/base-repository.ts
+export interface IBaseRepository<TEntity, TId> {
+    // Specification-based queries
+    findMany(spec?: BaseSpecification<TEntity>): Promise<TEntity[]>;
+    findOne(spec: BaseSpecification<TEntity>): Promise<TEntity | null>;
+    findById(id: TId, includes?: string[]): Promise<TEntity | null>;
+    
+    // Count and exists
+    count(spec?: BaseSpecification<TEntity>): Promise<number>;
+    exists(spec: BaseSpecification<TEntity>): Promise<boolean>;
+    
+    // CRUD operations
+    create(entity: TEntity): Promise<TEntity>;
+    update(entity: TEntity): Promise<TEntity>;
+    delete(id: TId): Promise<void>;
+    
+    // Batch operations
+    createMany(entities: TEntity[]): Promise<TEntity[]>;
+    updateMany(entities: TEntity[]): Promise<TEntity[]>;
+    deleteMany(ids: TId[]): Promise<void>;
+  }
