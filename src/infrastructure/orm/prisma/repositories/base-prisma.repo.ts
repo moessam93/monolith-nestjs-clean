@@ -134,6 +134,23 @@ export abstract class BasePrismaRepository<TEntity, TId, TPrismaModel>
     await this.prisma[this.modelName].deleteMany({ where: { id: { in: ids } } });
   }
 
+  async list(spec?: BaseSpecification<TEntity>): Promise<{ data: TEntity[]; total: number; totalFiltered: number }> {
+    const query = this.buildPrismaQuery(spec);
+    const whereClause = this.buildWhereClause(spec);
+
+    const [entities, total, totalFiltered] = await this.prisma.$transaction([
+      this.prisma[this.modelName].findMany(query),
+      this.prisma[this.modelName].count(),
+      this.prisma[this.modelName].count({ where: whereClause }),
+    ]);
+
+    return {
+      data: entities.map(this.mapper.toDomain),
+      total,
+      totalFiltered,
+    };
+  }
+
   protected buildIncludeClause(includes: (string | object)[]): any {
     const includeObj: any = {};
     

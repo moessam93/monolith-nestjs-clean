@@ -37,6 +37,7 @@ describe('ManageSocialPlatformUseCase', () => {
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
+      list: jest.fn(),
     };
 
     manageSocialPlatformUseCase = new ManageSocialPlatformUseCase(
