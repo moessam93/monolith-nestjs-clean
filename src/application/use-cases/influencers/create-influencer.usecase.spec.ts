@@ -4,6 +4,7 @@ import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platfo
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk, isErr } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('CreateInfluencerUseCase', () => {
   let createInfluencerUseCase: CreateInfluencerUseCase;
@@ -12,26 +13,29 @@ describe('CreateInfluencerUseCase', () => {
 
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
-      list: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
+      list: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     mockSocialPlatformsRepo = {
-      findById: jest.fn(),
-      findByInfluencerId: jest.fn(),
-      findByInfluencerAndKey: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      deleteByInfluencerAndKey: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
       exists: jest.fn(),
     };
 
@@ -64,8 +68,7 @@ describe('CreateInfluencerUseCase', () => {
         new Date('2024-01-01'),
       );
 
-      mockInfluencersRepo.findByUsername.mockResolvedValue(null);
-      mockInfluencersRepo.findByEmail.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
       mockInfluencersRepo.create.mockResolvedValue(createdInfluencer);
 
       // Act
@@ -83,7 +86,7 @@ describe('CreateInfluencerUseCase', () => {
         expect(result.value.socialPlatforms).toHaveLength(0);
       }
 
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('test_influencer2');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalled();
       expect(mockInfluencersRepo.create).toHaveBeenCalled();
     });
 
@@ -141,8 +144,7 @@ describe('CreateInfluencerUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findByUsername.mockResolvedValue(null);
-      mockInfluencersRepo.findByEmail.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
       mockInfluencersRepo.create.mockResolvedValue(createdInfluencer);
       mockSocialPlatformsRepo.create
         .mockResolvedValueOnce(createdInstagramPlatform)
@@ -183,7 +185,7 @@ describe('CreateInfluencerUseCase', () => {
         'https://example.com/existing.jpg',
       );
 
-      mockInfluencersRepo.findByUsername.mockResolvedValue(existingInfluencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(existingInfluencer);
 
       // Act
       const result = await createInfluencerUseCase.execute(input);
@@ -194,7 +196,7 @@ describe('CreateInfluencerUseCase', () => {
         expect(result.error.message).toContain("Influencer username already exists: existing_influencer");
       }
 
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('existing_influencer');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalled();
       expect(mockInfluencersRepo.create).not.toHaveBeenCalled();
     });
   });

@@ -5,7 +5,6 @@ export interface IBaseRepository<TEntity, TId> {
     // Specification-based queries
     findMany(spec?: BaseSpecification<TEntity>): Promise<TEntity[]>;
     findOne(spec: BaseSpecification<TEntity>): Promise<TEntity | null>;
-    findById(id: TId, includes?: string[]): Promise<TEntity | null>;
     
     // Count and exists
     count(spec?: BaseSpecification<TEntity>): Promise<number>;

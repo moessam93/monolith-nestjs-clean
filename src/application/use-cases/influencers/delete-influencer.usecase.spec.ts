@@ -4,6 +4,7 @@ import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 import { isOk, isErr } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('DeleteInfluencerUseCase', () => {
   let deleteInfluencerUseCase: DeleteInfluencerUseCase;
@@ -11,16 +12,17 @@ describe('DeleteInfluencerUseCase', () => {
 
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     deleteInfluencerUseCase = new DeleteInfluencerUseCase(mockInfluencersRepo);
@@ -45,7 +47,7 @@ describe('DeleteInfluencerUseCase', () => {
         new Date('2023-01-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
       mockInfluencersRepo.delete.mockResolvedValue();
 
       // Act
@@ -57,7 +59,7 @@ describe('DeleteInfluencerUseCase', () => {
         expect(result.value).toBeUndefined();
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).toHaveBeenCalledWith(influencerId);
     });
 
@@ -65,7 +67,7 @@ describe('DeleteInfluencerUseCase', () => {
       // Arrange
       const influencerId = 999;
 
-      mockInfluencersRepo.findById.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await deleteInfluencerUseCase.execute(influencerId);
@@ -78,7 +80,7 @@ describe('DeleteInfluencerUseCase', () => {
         expect(result.error.message).toContain('999');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).not.toHaveBeenCalled();
     });
 
@@ -100,13 +102,13 @@ describe('DeleteInfluencerUseCase', () => {
 
       const deleteError = new Error('Cannot delete influencer with existing beats');
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
       mockInfluencersRepo.delete.mockRejectedValue(deleteError);
 
       // Act & Assert
       await expect(deleteInfluencerUseCase.execute(influencerId)).rejects.toThrow('Cannot delete influencer with existing beats');
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).toHaveBeenCalledWith(influencerId);
     });
 
@@ -115,12 +117,12 @@ describe('DeleteInfluencerUseCase', () => {
       const influencerId = 1;
       const repositoryError = new Error('Database connection failed');
 
-      mockInfluencersRepo.findById.mockRejectedValue(repositoryError);
+      mockInfluencersRepo.findOne.mockRejectedValue(repositoryError);
 
       // Act & Assert
       await expect(deleteInfluencerUseCase.execute(influencerId)).rejects.toThrow('Database connection failed');
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).not.toHaveBeenCalled();
     });
 
@@ -145,7 +147,7 @@ describe('DeleteInfluencerUseCase', () => {
         new Date('2023-06-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
       mockInfluencersRepo.delete.mockResolvedValue();
 
       // Act
@@ -155,9 +157,9 @@ describe('DeleteInfluencerUseCase', () => {
       expect(isOk(result)).toBe(true);
 
       // Verify the operations were called
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).toHaveBeenCalledWith(influencerId);
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledTimes(1);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledTimes(1);
       expect(mockInfluencersRepo.delete).toHaveBeenCalledTimes(1);
     });
 
@@ -177,7 +179,7 @@ describe('DeleteInfluencerUseCase', () => {
         new Date('2023-01-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
       mockInfluencersRepo.delete.mockResolvedValue();
 
       // Act
@@ -189,7 +191,7 @@ describe('DeleteInfluencerUseCase', () => {
         expect(result.value).toBeUndefined();
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       expect(mockInfluencersRepo.delete).toHaveBeenCalledWith(influencerId);
     });
   });

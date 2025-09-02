@@ -4,6 +4,8 @@ import { UpdateSocialPlatformInput, SocialPlatformOutput } from '../../dto/influ
 import { Result, ok, err } from '../../common/result';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { ExistingSocialPlatformForInfluencerError, InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { Influencer } from '../../../domain/entities/influencer';
 
 export class ManageSocialPlatformUseCase {
   constructor(
@@ -15,13 +17,13 @@ export class ManageSocialPlatformUseCase {
     const { influencerId, key, url, numberOfFollowers } = input;
 
     // Check if influencer exists
-    const influencer = await this.influencersRepo.findById(influencerId);
+    const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     if (!influencer) {
       return err(new InfluencerNotFoundError(influencerId));
     }
 
     // Check if social platform already exists for this influencer
-    const existingSocialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(influencerId, key);
+    const existingSocialPlatform = await this.socialPlatformsRepo.findOne(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', influencerId).whereEqual('key', key));
 
     if (existingSocialPlatform) {
       // Update existing
@@ -67,19 +69,19 @@ export class ManageSocialPlatformUseCase {
 
   async remove(influencerId: number, key: string): Promise<Result<void, Error>> {
     // Check if influencer exists
-    const influencer = await this.influencersRepo.findById(influencerId);
+    const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     if (!influencer) {
       return err(new Error(`Influencer not found with ID: ${influencerId}`));
     }
 
     // Check if social platform exists
-    const socialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(influencerId, key);
+    const socialPlatform = await this.socialPlatformsRepo.findOne(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', influencerId).whereEqual('key', key));
     if (!socialPlatform) {
       return err(new Error(`Social platform '${key}' not found for influencer ${influencerId}`));
     }
 
     // Delete social platform
-    await this.socialPlatformsRepo.deleteByInfluencerAndKey(influencerId, key);
+    await this.socialPlatformsRepo.delete(socialPlatform.id);
 
     return ok(undefined);
   }
