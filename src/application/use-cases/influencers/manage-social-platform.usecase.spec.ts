@@ -4,6 +4,7 @@ import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platfo
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk, isErr } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('ManageSocialPlatformUseCase', () => {
   let manageSocialPlatformUseCase: ManageSocialPlatformUseCase;
@@ -12,26 +13,29 @@ describe('ManageSocialPlatformUseCase', () => {
 
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
     };
 
     mockSocialPlatformsRepo = {
-      findById: jest.fn(),
-      findByInfluencerId: jest.fn(),
-      findByInfluencerAndKey: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      deleteByInfluencerAndKey: jest.fn(),
       exists: jest.fn(),
     };
 
@@ -70,8 +74,8 @@ describe('ManageSocialPlatformUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(mockInfluencer);
-      mockSocialPlatformsRepo.findByInfluencerAndKey.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(mockInfluencer);
+      mockSocialPlatformsRepo.findOne.mockResolvedValue(null);
       mockSocialPlatformsRepo.create.mockResolvedValue(createdSocialPlatform);
 
       // Act
@@ -86,8 +90,8 @@ describe('ManageSocialPlatformUseCase', () => {
         expect(result.value.numberOfFollowers).toBe(10000);
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(123);
-      expect(mockSocialPlatformsRepo.findByInfluencerAndKey).toHaveBeenCalledWith(123, 'instagram');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', 123));
+      expect(mockSocialPlatformsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', 123).whereEqual('key', 'instagram'));
       expect(mockSocialPlatformsRepo.create).toHaveBeenCalled();
       expect(mockSocialPlatformsRepo.update).not.toHaveBeenCalled();
     });
@@ -123,8 +127,8 @@ describe('ManageSocialPlatformUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(mockInfluencer);
-      mockSocialPlatformsRepo.findByInfluencerAndKey.mockResolvedValue(existingSocialPlatform);
+      mockInfluencersRepo.findOne.mockResolvedValue(mockInfluencer);
+      mockSocialPlatformsRepo.findOne.mockResolvedValue(existingSocialPlatform);
       mockSocialPlatformsRepo.update.mockResolvedValue(updatedSocialPlatform);
 
       // Act
@@ -150,7 +154,7 @@ describe('ManageSocialPlatformUseCase', () => {
         numberOfFollowers: 10000,
       };
 
-      mockInfluencersRepo.findById.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await manageSocialPlatformUseCase.addOrUpdate(input);
@@ -161,8 +165,8 @@ describe('ManageSocialPlatformUseCase', () => {
         expect(result.error.message).toContain('Influencer not found with ID: 999');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(999);
-      expect(mockSocialPlatformsRepo.findByInfluencerAndKey).not.toHaveBeenCalled();
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', 999));
+      expect(mockSocialPlatformsRepo.findOne).not.toHaveBeenCalled();
     });
 
     it('should return error when creating new platform without required fields', async () => {
@@ -175,8 +179,8 @@ describe('ManageSocialPlatformUseCase', () => {
 
       const mockInfluencer = new Influencer(123, 'test_user', 'test@example.com', 'Test', 'تست', 'profile.jpg');
 
-      mockInfluencersRepo.findById.mockResolvedValue(mockInfluencer);
-      mockSocialPlatformsRepo.findByInfluencerAndKey.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(mockInfluencer);
+      mockSocialPlatformsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await manageSocialPlatformUseCase.addOrUpdate(input);
@@ -198,9 +202,9 @@ describe('ManageSocialPlatformUseCase', () => {
       const mockInfluencer = new Influencer(123, 'test_user', 'test@example.com', 'Test', 'تست', 'profile.jpg');
       const existingSocialPlatform = new SocialPlatform(456, 'instagram', 'url', 10000, 123);
 
-      mockInfluencersRepo.findById.mockResolvedValue(mockInfluencer);
-      mockSocialPlatformsRepo.findByInfluencerAndKey.mockResolvedValue(existingSocialPlatform);
-      mockSocialPlatformsRepo.deleteByInfluencerAndKey.mockResolvedValue(undefined);
+      mockInfluencersRepo.findOne.mockResolvedValue(mockInfluencer);
+      mockSocialPlatformsRepo.findOne.mockResolvedValue(existingSocialPlatform);
+      mockSocialPlatformsRepo.delete.mockResolvedValue(undefined);
 
       // Act
       const result = await manageSocialPlatformUseCase.remove(influencerId, key);
@@ -211,9 +215,9 @@ describe('ManageSocialPlatformUseCase', () => {
         expect(result.value).toBeUndefined();
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(123);
-      expect(mockSocialPlatformsRepo.findByInfluencerAndKey).toHaveBeenCalledWith(123, 'instagram');
-      expect(mockSocialPlatformsRepo.deleteByInfluencerAndKey).toHaveBeenCalledWith(123, 'instagram');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', 123));
+      expect(mockSocialPlatformsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', 123).whereEqual('key', 'instagram'));
+      expect(mockSocialPlatformsRepo.delete).toHaveBeenCalledWith(456);
     });
 
     it('should return error when influencer not found', async () => {
@@ -221,7 +225,7 @@ describe('ManageSocialPlatformUseCase', () => {
       const influencerId = 999;
       const key = 'instagram';
 
-      mockInfluencersRepo.findById.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await manageSocialPlatformUseCase.remove(influencerId, key);
@@ -240,8 +244,8 @@ describe('ManageSocialPlatformUseCase', () => {
 
       const mockInfluencer = new Influencer(123, 'test_user', 'test@example.com', 'Test', 'تست', 'profile.jpg');
 
-      mockInfluencersRepo.findById.mockResolvedValue(mockInfluencer);
-      mockSocialPlatformsRepo.findByInfluencerAndKey.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(mockInfluencer);
+      mockSocialPlatformsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await manageSocialPlatformUseCase.remove(influencerId, key);
@@ -252,7 +256,8 @@ describe('ManageSocialPlatformUseCase', () => {
         expect(result.error.message).toContain("Social platform 'youtube' not found for influencer 123");
       }
 
-      expect(mockSocialPlatformsRepo.deleteByInfluencerAndKey).not.toHaveBeenCalled();
+      expect(mockSocialPlatformsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', 123).whereEqual('key', 'youtube'));
+      expect(mockSocialPlatformsRepo.delete).not.toHaveBeenCalled();
     });
   });
 });

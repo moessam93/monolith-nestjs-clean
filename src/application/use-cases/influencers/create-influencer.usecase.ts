@@ -5,6 +5,7 @@ import { Result, ok, err } from '../../common/result';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { ExistingSocialPlatformForInfluencerError, InfluencerUsernameAlreadyExistsError} from '../../../domain/errors/influencer-errors';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 export class CreateInfluencerUseCase {
   constructor(
@@ -16,7 +17,8 @@ export class CreateInfluencerUseCase {
     const { username, email, nameEn, nameAr, profilePictureUrl, socialPlatforms = [] } = input;
 
     // Check if username already exists
-    const existingByUsername = await this.influencersRepo.findByUsername(username);
+    const existingByUsername = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('username', username));
+    
     if (existingByUsername) {
       return err(new InfluencerUsernameAlreadyExistsError(username));
     }
@@ -39,7 +41,7 @@ export class CreateInfluencerUseCase {
 
     // Check if social platforms already exist for this influencer
     for (const spInput of socialPlatforms) {
-      const existingSocialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(createdInfluencer.id, spInput.key);
+      const existingSocialPlatform = await this.socialPlatformsRepo.findOne(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', createdInfluencer.id).whereEqual('key', spInput.key));
       if (existingSocialPlatform) {
         return err(new ExistingSocialPlatformForInfluencerError(createdInfluencer.id, spInput.key, spInput.url));
       }

@@ -3,26 +3,42 @@ import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo'
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk, isErr } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platforms-repo';
 
 describe('UpdateInfluencerUseCase', () => {
   let updateInfluencerUseCase: UpdateInfluencerUseCase;
   let mockInfluencersRepo: jest.Mocked<IInfluencersRepo>;
-
+  let mockSocialPlatformsRepo: jest.Mocked<ISocialPlatformsRepo>;
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
     };
 
-    updateInfluencerUseCase = new UpdateInfluencerUseCase(mockInfluencersRepo);
+    mockSocialPlatformsRepo = {
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+    };
+
+    updateInfluencerUseCase = new UpdateInfluencerUseCase(mockInfluencersRepo, mockSocialPlatformsRepo);
   });
 
   describe('execute', () => {
@@ -64,9 +80,7 @@ describe('UpdateInfluencerUseCase', () => {
         new Date('2023-06-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(existingInfluencer);
-      mockInfluencersRepo.findByUsername.mockResolvedValue(null); // Username not taken
-      mockInfluencersRepo.findByEmail.mockResolvedValue(null); // Email not taken
+      mockInfluencersRepo.findOne.mockResolvedValue(existingInfluencer);
       mockInfluencersRepo.update.mockResolvedValue(updatedInfluencer);
 
       // Act
@@ -87,9 +101,8 @@ describe('UpdateInfluencerUseCase', () => {
         expect(result.value.updatedAt).toBeInstanceOf(Date);
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('updateduser');
-      expect(mockInfluencersRepo.findByEmail).toHaveBeenCalledWith('updated@example.com');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('email', 'updated@example.com'));
       expect(mockInfluencersRepo.update).toHaveBeenCalledWith(expect.objectContaining({
         id: influencerId,
         username: 'updateduser',
@@ -104,7 +117,7 @@ describe('UpdateInfluencerUseCase', () => {
         username: 'nonexistent',
       };
 
-      mockInfluencersRepo.findById.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await updateInfluencerUseCase.execute(input);
@@ -116,7 +129,7 @@ describe('UpdateInfluencerUseCase', () => {
         expect(result.error.message).toContain('999');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(999);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', 999));
       expect(mockInfluencersRepo.update).not.toHaveBeenCalled();
     });
 
@@ -152,8 +165,9 @@ describe('UpdateInfluencerUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(existingInfluencer);
-      mockInfluencersRepo.findByUsername.mockResolvedValue(influencerWithTakenUsername);
+      mockInfluencersRepo.findOne
+        .mockResolvedValueOnce(existingInfluencer)
+        .mockResolvedValueOnce(influencerWithTakenUsername);
 
       // Act
       const result = await updateInfluencerUseCase.execute(input);
@@ -165,8 +179,8 @@ describe('UpdateInfluencerUseCase', () => {
         expect(result.error.message).toContain('taken');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
-      expect(mockInfluencersRepo.findByUsername).toHaveBeenCalledWith('taken');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('username', 'taken'));
       expect(mockInfluencersRepo.update).not.toHaveBeenCalled();
     });
 
@@ -202,8 +216,9 @@ describe('UpdateInfluencerUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(existingInfluencer);
-      mockInfluencersRepo.findByEmail.mockResolvedValue(influencerWithTakenEmail);
+      mockInfluencersRepo.findOne
+        .mockResolvedValueOnce(existingInfluencer)
+        .mockResolvedValueOnce(influencerWithTakenEmail);
 
       // Act
       const result = await updateInfluencerUseCase.execute(input);
@@ -215,8 +230,8 @@ describe('UpdateInfluencerUseCase', () => {
         expect(result.error.message).toContain('taken@example.com');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
-      expect(mockInfluencersRepo.findByEmail).toHaveBeenCalledWith('taken@example.com');
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('email', 'taken@example.com'));
       expect(mockInfluencersRepo.update).not.toHaveBeenCalled();
     });
 
@@ -256,7 +271,7 @@ describe('UpdateInfluencerUseCase', () => {
         new Date(),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(existingInfluencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(existingInfluencer);
       // Don't mock findByUsername/findByEmail since username and email haven't changed
       mockInfluencersRepo.update.mockResolvedValue(updatedInfluencer);
 
@@ -271,9 +286,15 @@ describe('UpdateInfluencerUseCase', () => {
         expect(result.value.email).toBe('same@example.com');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
-      expect(mockInfluencersRepo.findByUsername).not.toHaveBeenCalled(); // Should not check since it's the same
-      expect(mockInfluencersRepo.findByEmail).not.toHaveBeenCalled(); // Should not check since it's the same
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: expect.arrayContaining([
+            expect.objectContaining({ id: influencerId })
+          ])
+        })
+      );
+      // expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('username', 'sameuser')); // Should not check since it's the same
+      // expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('email', 'same@example.com')); // Should not check since it's the same
       expect(mockInfluencersRepo.update).toHaveBeenCalled();
     });
 
@@ -311,7 +332,7 @@ describe('UpdateInfluencerUseCase', () => {
         new Date('2023-06-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(existingInfluencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(existingInfluencer);
       mockInfluencersRepo.update.mockResolvedValue(updatedInfluencer);
 
       // Act

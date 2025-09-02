@@ -4,6 +4,8 @@ import { UpdateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dt
 import { Result, ok, err } from '../../common/result';
 import { InfluencerNotFoundError, InfluencerUsernameAlreadyExistsError, InfluencerEmailAlreadyExistsError, ExistingSocialPlatformForInfluencerError } from '../../../domain/errors/influencer-errors';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { Influencer } from '../../../domain/entities/influencer';
 
 export class UpdateInfluencerUseCase {
   constructor(
@@ -15,14 +17,14 @@ export class UpdateInfluencerUseCase {
     const { id, username, email, nameEn, nameAr, profilePictureUrl, socialPlatforms } = input;
 
     // Check if influencer exists
-    const influencer = await this.influencersRepo.findById(id);
+    const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', id));
     if (!influencer) {
       return err(new InfluencerNotFoundError(id));
     }
 
     // Check if username is being changed and already exists
     if (username && username !== influencer.username) {
-      const existingByUsername = await this.influencersRepo.findByUsername(username);
+      const existingByUsername = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('username', username));
       if (existingByUsername && existingByUsername.id !== id) {
         return err(new InfluencerUsernameAlreadyExistsError(username));
       }
@@ -30,7 +32,7 @@ export class UpdateInfluencerUseCase {
 
     // Check if email is being changed and already exists
     if (email && email !== influencer.email) {
-      const existingByEmail = await this.influencersRepo.findByEmail(email);
+      const existingByEmail = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('email', email));
       if (existingByEmail && existingByEmail.id !== id) {
         return err(new InfluencerEmailAlreadyExistsError(email));
       }
@@ -83,7 +85,7 @@ export class UpdateInfluencerUseCase {
 
       // Check if new social platforms already exist for this influencer
       for (const spInput of newSocialPlatforms) {
-        const existingSocialPlatform = await this.socialPlatformsRepo.findByInfluencerAndKey(influencer.id, spInput.key);
+        const existingSocialPlatform = await this.socialPlatformsRepo.findOne(new BaseSpecification<SocialPlatform>().whereEqual('influencerId', influencer.id).whereEqual('key', spInput.key));
         if (existingSocialPlatform) {
           return err(new ExistingSocialPlatformForInfluencerError(influencer.id, spInput.key, spInput.url));
         }

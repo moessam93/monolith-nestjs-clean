@@ -89,15 +89,6 @@ export abstract class BasePrismaRepository<TEntity, TId, TPrismaModel>
     return where;
   }
 
-  async findById(id: TId, includes?: string[]): Promise<TEntity | null> {
-    const query: any = { where: { id } };
-    if (includes && includes.length > 0) {
-      query.include = this.buildIncludeClause(includes);
-    }
-    const prismaEntity = await this.prisma[this.modelName].findUnique(query);
-    return prismaEntity ? this.mapper.toDomain(prismaEntity) : null;
-  }
-
   async exists(spec: BaseSpecification<TEntity>): Promise<boolean> {
     const count = await this.count(spec);
     return count > 0;
@@ -143,5 +134,48 @@ export abstract class BasePrismaRepository<TEntity, TId, TPrismaModel>
     await this.prisma[this.modelName].deleteMany({ where: { id: { in: ids } } });
   }
 
-  protected abstract buildIncludeClause(includes: string[]): any;
+  protected buildIncludeClause(includes: (string | object)[]): any {
+    const includeObj: any = {};
+    
+    includes.forEach(include => {
+      if (typeof include === 'string') {
+        // Handle dot notation: 'influencer.socialPlatforms'
+        if (include.includes('.')) {
+          this.handleNestedInclude(includeObj, include);
+        } else {
+          // Simple include: 'influencer'
+          includeObj[include] = true;
+        }
+      } else if (typeof include === 'object') {
+        // Handle object notation: { influencer: { include: { socialPlatforms: true } } }
+        Object.assign(includeObj, include);
+      }
+    });
+    
+    return includeObj;
+  }
+  
+  private handleNestedInclude(includeObj: any, path: string): void {
+    const parts = path.split('.');
+    let current = includeObj;
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      
+      if (i === parts.length - 1) {
+        // Last part
+        if (!current[part]) current[part] = true;
+      } else {
+        // Intermediate part
+        if (!current[part]) {
+          current[part] = { include: {} };
+        } else if (current[part] === true) {
+          current[part] = { include: {} };
+        } else if (!current[part].include) {
+          current[part].include = {};
+        }
+        current = current[part].include;
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@ import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 import { isOk, isErr } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('GetInfluencerUseCase', () => {
   let getInfluencerUseCase: GetInfluencerUseCase;
@@ -11,16 +12,17 @@ describe('GetInfluencerUseCase', () => {
 
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     getInfluencerUseCase = new GetInfluencerUseCase(mockInfluencersRepo);
@@ -48,7 +50,7 @@ describe('GetInfluencerUseCase', () => {
         new Date('2023-06-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
 
       // Act
       const result = await getInfluencerUseCase.execute(influencerId);
@@ -71,14 +73,14 @@ describe('GetInfluencerUseCase', () => {
         expect(result.value.updatedAt).toEqual(new Date('2023-06-01'));
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     });
 
     it('should return InfluencerNotFoundError when influencer does not exist', async () => {
       // Arrange
       const influencerId = 999;
 
-      mockInfluencersRepo.findById.mockResolvedValue(null);
+      mockInfluencersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await getInfluencerUseCase.execute(influencerId);
@@ -91,7 +93,7 @@ describe('GetInfluencerUseCase', () => {
         expect(result.error.message).toContain('999');
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     });
 
     it('should handle influencer with no social platforms', async () => {
@@ -110,7 +112,7 @@ describe('GetInfluencerUseCase', () => {
         new Date('2023-02-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
 
       // Act
       const result = await getInfluencerUseCase.execute(influencerId);
@@ -128,7 +130,7 @@ describe('GetInfluencerUseCase', () => {
         expect(result.value.updatedAt).toEqual(new Date('2023-02-01'));
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     });
 
     it('should handle repository errors gracefully', async () => {
@@ -136,12 +138,12 @@ describe('GetInfluencerUseCase', () => {
       const influencerId = 1;
       const repositoryError = new Error('Database connection failed');
 
-      mockInfluencersRepo.findById.mockRejectedValue(repositoryError);
+      mockInfluencersRepo.findOne.mockRejectedValue(repositoryError);
 
       // Act & Assert
       await expect(getInfluencerUseCase.execute(influencerId)).rejects.toThrow('Database connection failed');
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     });
 
     it('should handle influencer with multiple social platforms', async () => {
@@ -167,7 +169,7 @@ describe('GetInfluencerUseCase', () => {
         new Date('2023-12-01'),
       );
 
-      mockInfluencersRepo.findById.mockResolvedValue(influencer);
+      mockInfluencersRepo.findOne.mockResolvedValue(influencer);
 
       // Act
       const result = await getInfluencerUseCase.execute(influencerId);
@@ -180,7 +182,7 @@ describe('GetInfluencerUseCase', () => {
         expect(result.value.socialPlatforms.find(sp => sp.key === 'tiktok')?.numberOfFollowers).toBe(50000);
       }
 
-      expect(mockInfluencersRepo.findById).toHaveBeenCalledWith(influencerId);
+      expect(mockInfluencersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     });
   });
 });

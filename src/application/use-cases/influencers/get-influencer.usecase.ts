@@ -2,6 +2,8 @@ import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo'
 import { InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { Influencer } from '../../../domain/entities/influencer';
 
 export class GetInfluencerUseCase {
   constructor(
@@ -9,7 +11,7 @@ export class GetInfluencerUseCase {
   ) {}
 
   async execute(id: number): Promise<Result<InfluencerOutput, InfluencerNotFoundError>> {
-    const influencer = await this.influencersRepo.findById(id);
+    const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', id));
     
     if (!influencer) {
       return err(new InfluencerNotFoundError(id));
