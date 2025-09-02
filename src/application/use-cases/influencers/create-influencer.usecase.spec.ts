@@ -37,6 +37,7 @@ describe('CreateInfluencerUseCase', () => {
       updateMany: jest.fn(),
       deleteMany: jest.fn(),
       exists: jest.fn(),
+      list: jest.fn(),
     };
 
     createInfluencerUseCase = new CreateInfluencerUseCase(

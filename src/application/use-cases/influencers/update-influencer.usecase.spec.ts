@@ -36,6 +36,7 @@ describe('UpdateInfluencerUseCase', () => {
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
+      list: jest.fn(),
     };
 
     updateInfluencerUseCase = new UpdateInfluencerUseCase(mockInfluencersRepo, mockSocialPlatformsRepo);

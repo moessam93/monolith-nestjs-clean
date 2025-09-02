@@ -19,4 +19,7 @@ export interface IBaseRepository<TEntity, TId> {
     createMany(entities: TEntity[]): Promise<TEntity[]>;
     updateMany(entities: TEntity[]): Promise<TEntity[]>;
     deleteMany(ids: TId[]): Promise<void>;
+    
+    // List with pagination and filtering
+    list(spec?: BaseSpecification<TEntity>): Promise<{ data: TEntity[]; total: number; totalFiltered: number }>;
   }
