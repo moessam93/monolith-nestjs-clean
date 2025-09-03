@@ -1,22 +1,24 @@
-import { IBeatsRepo } from '../../../domain/repositories/beats-repo';
 import { UpdateBeatInput, BeatOutput } from '../../dto/beat.dto';
 import { Result, ok, err } from '../../common/result';
 import { BeatInfluencerNotFoundError, BeatBrandNotFoundError, BeatNotFoundError } from '../../../domain/errors/beat-errors';
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Beat } from '../../../domain/entities/beat';
+import { Influencer } from '../../../domain/entities/influencer';
+import { Brand } from '../../../domain/entities/brand';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 export class UpdateBeatUseCase {
   constructor(
-    private readonly beatsRepo: IBeatsRepo,
-    private readonly influencersRepo: IInfluencersRepo,
-    private readonly brandsRepo: IBrandsRepo,
+    private readonly beatsRepo: IBaseRepository<Beat, number>,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
+    private readonly brandsRepo: IBaseRepository<Brand, number>,
   ) {}
 
   async execute(input: UpdateBeatInput): Promise<Result<BeatOutput, BeatNotFoundError | BeatInfluencerNotFoundError | BeatBrandNotFoundError>> {
     const { id, caption, mediaUrl, thumbnailUrl, statusKey, influencerId, brandId } = input;
 
     // Check if beat exists
-    const beat = await this.beatsRepo.findById(id);
+    const beat = await this.beatsRepo.findOne(new BaseSpecification<Beat>().whereEqual('id', id));
     if (!beat) {
       return err(new BeatNotFoundError(id));
     }
@@ -28,7 +30,7 @@ export class UpdateBeatUseCase {
     if (statusKey !== undefined) beat.statusKey = statusKey;
 
     if (influencerId !== undefined){
-      const influencer = await this.influencersRepo.findById(influencerId);
+      const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
       if (!influencer) {
         return err(new BeatInfluencerNotFoundError(influencerId));
       }
@@ -36,7 +38,7 @@ export class UpdateBeatUseCase {
     }
 
     if (brandId !== undefined){
-      const brand = await this.brandsRepo.findById(brandId);
+      const brand = await this.brandsRepo.findOne(new BaseSpecification<Brand>().whereEqual('id', brandId));
       if (!brand) {
         return err(new BeatBrandNotFoundError(brandId));
       }
@@ -54,6 +56,8 @@ export class UpdateBeatUseCase {
       statusKey: updatedBeat.statusKey,
       influencerId: updatedBeat.influencerId,
       brandId: updatedBeat.brandId,
+      influencer: updatedBeat.influencer,
+      brand: updatedBeat.brand,
       createdAt: updatedBeat.createdAt!,
       updatedAt: updatedBeat.updatedAt!,
     });

@@ -5,6 +5,7 @@ export const INFLUENCER_USERNAME_ALREADY_EXISTS = 'INFLUENCER_USERNAME_ALREADY_E
 export const INFLUENCER_EMAIL_ALREADY_EXISTS = 'INFLUENCER_EMAIL_ALREADY_EXISTS';
 export const EXISTING_SOCIAL_PLATFORM_FOR_INFLUENCER = 'EXISTING_SOCIAL_PLATFORM_FOR_INFLUENCER';
 export const SOCIAL_PLATFORM_NOT_FOUND = 'SOCIAL_PLATFORM_NOT_FOUND';
+export const INFLUENCER_HAS_BEATS = 'INFLUENCER_HAS_BEATS';
 
 export class InfluencerNotFoundError extends DomainError {
   readonly code = INFLUENCER_NOT_FOUND;
@@ -43,5 +44,13 @@ export class SocialPlatformNotFoundError extends DomainError {
 
   constructor(influencerId: number, key: string) {
     super(`Social platform not found for influencer with ID: ${influencerId} and key: ${key}`);
+  }
+}
+
+export class InfluencerHasBeatsError extends DomainError {
+  readonly code = INFLUENCER_HAS_BEATS;
+
+  constructor(influencerId: number) {
+    super(`Influencer has beats: ${influencerId}`);
   }
 }

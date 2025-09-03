@@ -1,21 +1,26 @@
 import { ListBrandsUseCase } from './list-brands.usecase';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 import { Brand } from '../../../domain/entities/brand';
 import { isOk } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('ListBrandsUseCase', () => {
   let listBrandsUseCase: ListBrandsUseCase;
-  let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
 
   beforeEach(() => {
     mockBrandsRepo = {
-      findById: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      findByName: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     listBrandsUseCase = new ListBrandsUseCase(mockBrandsRepo);
@@ -53,11 +58,7 @@ describe('ListBrandsUseCase', () => {
         expect(result.value.meta.limit).toBe(20);
       }
 
-      expect(mockBrandsRepo.list).toHaveBeenCalledWith({ 
-        page: 1, 
-        limit: 20, 
-        search: undefined 
-      });
+      expect(mockBrandsRepo.list).toHaveBeenCalledWith(new BaseSpecification<Brand>().paginate({ page: 1, limit: 20 }));
     });
 
     it('should return filtered brands list with search', async () => {
@@ -92,11 +93,7 @@ describe('ListBrandsUseCase', () => {
         expect(result.value.meta.totalFiltered).toBe(1);
       }
 
-      expect(mockBrandsRepo.list).toHaveBeenCalledWith({ 
-        page: 2, 
-        limit: 5, 
-        search: 'nike' 
-      });
+      expect(mockBrandsRepo.list).toHaveBeenCalledWith(new BaseSpecification<Brand>().searchIn(['nameEn', 'nameAr'], 'nike').paginate({ page: 2, limit: 5 }));
     });
 
     it('should return empty list when no brands found', async () => {

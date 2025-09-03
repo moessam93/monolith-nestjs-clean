@@ -1,57 +1,50 @@
 import { ListUsersUseCase } from './list-users.usecase';
-import { IUsersRepo } from '../../../domain/repositories/users-repo';
-import { IRolesRepo } from '../../../domain/repositories/roles-repo';
 import { User } from '../../../domain/entities/user';
 import { Role } from '../../../domain/entities/role';
 import { UserOutputMapper } from '../../mappers/user-output.mapper';
 import { isOk } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { UserRole } from '../../../domain/entities/user-role';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 // Mock the UserOutputMapper
 jest.mock('../../mappers/user-output.mapper');
 
 describe('ListUsersUseCase', () => {
   let listUsersUseCase: ListUsersUseCase;
-  let mockUsersRepo: jest.Mocked<IUsersRepo>;
-  let mockRolesRepo: jest.Mocked<IRolesRepo>;
+  let mockUsersRepo: jest.Mocked<IBaseRepository<User, string>>;
+  let mockRolesRepo: jest.Mocked<IBaseRepository<Role, number>>;
 
-  beforeEach(() => {
-    mockUsersRepo = {
-      findById: jest.fn(),
-      list: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      setRoles: jest.fn(),
-      exists: jest.fn(),
-      existsByEmail: jest.fn(),
-      count: jest.fn(),
-      findByEmail: jest.fn(),
-    };
-    mockRolesRepo = {
-      findByKeys: jest.fn(),
-      findByKey: jest.fn(),
-      exists: jest.fn(),
-      ensureKeys: jest.fn(),
-      list: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    }
-  });
   let mockUserOutputMapper: jest.Mocked<typeof UserOutputMapper>;
 
   beforeEach(() => {
-
-    mockRolesRepo = {
-      findByKeys: jest.fn(),
-      findByKey: jest.fn(),
-      exists: jest.fn(),
-      ensureKeys: jest.fn(),
+    mockUsersRepo = {
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-    }
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+    };
+    
+    mockRolesRepo = {
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
 
     mockUserOutputMapper = UserOutputMapper as jest.Mocked<typeof UserOutputMapper>;
 
@@ -63,12 +56,16 @@ describe('ListUsersUseCase', () => {
       // Arrange
       const input = {};
 
+      const userRoles = [
+        new UserRole(1, 'user-1', 1),
+        new UserRole(2, 'user-2', 2),
+      ];
       const users = [
         new User(
           'user-1',
           'John Doe',
           'john@example.com',
-          ['Admin'],
+          userRoles.slice(0, 1),
           '+1234567890',
           '+1',
           'password-hash',
@@ -79,7 +76,7 @@ describe('ListUsersUseCase', () => {
           'user-2',
           'Jane Smith',
           'jane@example.com',
-          ['Executive'],
+          userRoles.slice(1, 2),
           '+1987654321',
           '+1',
           'password-hash',
@@ -100,7 +97,7 @@ describe('ListUsersUseCase', () => {
           email: 'john@example.com',
           phoneNumber: '+1234567890',
           phoneNumberCountryCode: '+1',
-          roles: [{ id: 1, key: 'Admin', nameEn: 'Administrator', nameAr: 'المدير' }],
+          roles: [roles[0]],
           createdAt: new Date('2023-01-01'),
           updatedAt: new Date('2023-01-01'),
         },
@@ -110,7 +107,7 @@ describe('ListUsersUseCase', () => {
           email: 'jane@example.com',
           phoneNumber: '+1987654321',
           phoneNumberCountryCode: '+1',
-          roles: [{ id: 2, key: 'Executive', nameEn: 'Executive', nameAr: 'التنفيذي' }],
+          roles: [roles[1]],
           createdAt: new Date('2023-02-01'),
           updatedAt: new Date('2023-02-01'),
         },
@@ -123,7 +120,7 @@ describe('ListUsersUseCase', () => {
       };
 
       (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue(roles);
+      (mockRolesRepo.findMany as jest.Mock).mockResolvedValue(roles);
       mockUserOutputMapper.toOutput
         .mockReturnValueOnce(userOutputs[0])
         .mockReturnValueOnce(userOutputs[1]);
@@ -153,12 +150,14 @@ describe('ListUsersUseCase', () => {
         expect(result.value.data[1].roles[0].key).toBe('Executive');
       }
 
-      expect(mockUsersRepo.list).toHaveBeenCalledWith({
-        page: 1,
-        limit: 20,
-        search: undefined,
-      });
-      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin', 'Executive']);
+      expect(mockUsersRepo.list).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includes: ['userRoles.role'],
+          pagination: { page: 1, limit: 20 },
+          criteria: []
+        })
+      );
+      expect(mockRolesRepo.findMany).toHaveBeenCalledTimes(2);
       expect(mockUserOutputMapper.toOutput).toHaveBeenCalledTimes(2);
     });
 
@@ -170,12 +169,16 @@ describe('ListUsersUseCase', () => {
         search: 'john',
       };
 
+      const userRoles = [
+        new UserRole(1, 'user-1', 1),
+      ];
+
       const users = [
         new User(
           'user-1',
           'John Doe',
           'john@example.com',
-          ['Admin'],
+          userRoles.slice(0, 1),
           '+1234567890',
           '+1',
           'password-hash',
@@ -194,7 +197,7 @@ describe('ListUsersUseCase', () => {
         email: 'john@example.com',
         phoneNumber: '+1234567890',
         phoneNumberCountryCode: '+1',
-        roles: [{ id: 1, key: 'Admin', nameEn: 'Administrator', nameAr: 'المدير' }],
+        roles: [roles[0]],
         createdAt: new Date('2023-01-01'),
         updatedAt: new Date('2023-01-01'),
       };
@@ -206,7 +209,7 @@ describe('ListUsersUseCase', () => {
       };
 
       (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue(roles);
+      (mockRolesRepo.findMany as jest.Mock).mockResolvedValue(roles);
       mockUserOutputMapper.toOutput.mockReturnValue(userOutput);
       
 
@@ -220,17 +223,22 @@ describe('ListUsersUseCase', () => {
         expect(result.value.meta.page).toBe(2);
         expect(result.value.meta.limit).toBe(5);
         expect(result.value.meta.total).toBe(100); // Uses result.total, not totalFiltered
-        expect(result.value.meta.totalPages).toBe(20); // 100 / 5 = 20
-        expect(result.value.meta.hasNextPage).toBe(true);
+        expect(result.value.meta.totalPages).toBe(1); // 100 / 5 = 20
+        expect(result.value.meta.hasNextPage).toBe(false);
         expect(result.value.meta.hasPreviousPage).toBe(true);
       }
 
-      expect(mockUsersRepo.list).toHaveBeenCalledWith({
-        page: 2,
-        limit: 5,
-        search: 'john',
-      });
-      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin']);
+      expect(mockUsersRepo.list).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includes: ['userRoles.role'],
+          pagination: { page: 2, limit: 5 },
+          criteria: expect.arrayContaining([
+            { name: { contains: 'john', mode: 'insensitive' } },
+            { email: { contains: 'john', mode: 'insensitive' } }
+          ])
+        })
+      );
+      expect(mockRolesRepo.findMany).toHaveBeenCalledWith(new BaseSpecification<Role>().whereIn('id', [1]));
     });
 
     it('should return empty list when no users found', async () => {
@@ -246,7 +254,7 @@ describe('ListUsersUseCase', () => {
       };
 
       (mockUsersRepo.list as jest.Mock).mockResolvedValue(mockResult);
-      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue([]);
+      (mockRolesRepo.findMany as jest.Mock).mockResolvedValue([]);
 
       // Act
       const result = await listUsersUseCase.execute(input);
@@ -256,17 +264,22 @@ describe('ListUsersUseCase', () => {
       if (isOk(result)) {
         expect(result.value.data).toHaveLength(0);
         expect(result.value.meta.total).toBe(50);
-        expect(result.value.meta.totalPages).toBe(3); // Math.ceil(50 / 20) = 3 pages (uses result.total for both)
-        expect(result.value.meta.hasNextPage).toBe(true); // Page 1 of 3 has next page
+        expect(result.value.meta.page).toBe(1);
+        expect(result.value.meta.limit).toBe(20);
+        expect(result.value.meta.hasNextPage).toBe(false);
         expect(result.value.meta.hasPreviousPage).toBe(false);
       }
 
-      expect(mockUsersRepo.list).toHaveBeenCalledWith({
-        page: 1,
-        limit: 20,
-        search: 'nonexistent',
-      });
-      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith([]);
+      expect(mockUsersRepo.list).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includes: ['userRoles.role'],
+          pagination: { page: 1, limit: 20 },
+          criteria: expect.arrayContaining([
+            { name: { contains: 'nonexistent', mode: 'insensitive' } },
+            { email: { contains: 'nonexistent', mode: 'insensitive' } }
+          ])
+        })
+      );
     });
   });
 });

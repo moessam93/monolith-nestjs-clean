@@ -1,15 +1,16 @@
 import { DeleteInfluencerUseCase } from './delete-influencer.usecase';
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 import { isOk, isErr } from '../../common/result';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Beat } from '../../../domain/entities/beat';
 
 describe('DeleteInfluencerUseCase', () => {
   let deleteInfluencerUseCase: DeleteInfluencerUseCase;
-  let mockInfluencersRepo: jest.Mocked<IInfluencersRepo>;
-
+  let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
+  let mockBeatsRepo: jest.Mocked<IBaseRepository<Beat, number>>;
   beforeEach(() => {
     mockInfluencersRepo = {
       findMany: jest.fn(),
@@ -25,7 +26,21 @@ describe('DeleteInfluencerUseCase', () => {
       deleteMany: jest.fn(),
     };
 
-    deleteInfluencerUseCase = new DeleteInfluencerUseCase(mockInfluencersRepo);
+    mockBeatsRepo = {
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+    };
+
+    deleteInfluencerUseCase = new DeleteInfluencerUseCase(mockInfluencersRepo, mockBeatsRepo);
   });
 
   describe('execute', () => {

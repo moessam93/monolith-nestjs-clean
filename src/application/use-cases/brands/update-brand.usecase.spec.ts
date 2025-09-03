@@ -1,17 +1,22 @@
 import { UpdateBrandUseCase } from './update-brand.usecase';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { Brand } from '../../../domain/entities/brand';
 import { BrandNotFoundError, BrandNameAlreadyExistsError } from '../../../domain/errors/brand-errors';
 import { isOk, isErr } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('UpdateBrandUseCase', () => {
   let updateBrandUseCase: UpdateBrandUseCase;
-  let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
 
   beforeEach(() => {
     mockBrandsRepo = {
-      findById: jest.fn(),
-      findByName: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -52,7 +57,7 @@ describe('UpdateBrandUseCase', () => {
         new Date(),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(existingBrand);
+      mockBrandsRepo.findOne.mockResolvedValue(existingBrand);
       mockBrandsRepo.update.mockResolvedValue(updatedBrand);
 
       // Act
@@ -70,7 +75,7 @@ describe('UpdateBrandUseCase', () => {
         expect(result.value.updatedAt).toBeInstanceOf(Date);
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
       expect(mockBrandsRepo.update).toHaveBeenCalledWith(expect.objectContaining({
         id: brandId,
         logoUrl: 'https://updated-logo.jpg',
@@ -85,7 +90,7 @@ describe('UpdateBrandUseCase', () => {
         nameEn: 'Updated Brand Name',
       };
 
-      mockBrandsRepo.findById.mockResolvedValue(null);
+      mockBrandsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await updateBrandUseCase.execute(input);
@@ -97,7 +102,7 @@ describe('UpdateBrandUseCase', () => {
         expect(result.error.code).toBe('BRAND_NOT_FOUND');
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(999);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', 999));
       expect(mockBrandsRepo.update).not.toHaveBeenCalled();
     });
 
@@ -129,8 +134,8 @@ describe('UpdateBrandUseCase', () => {
         new Date(),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(existingBrand);
-      mockBrandsRepo.findByName.mockResolvedValue([brandWithTakenName]); // Name is taken
+      mockBrandsRepo.findOne.mockResolvedValue(existingBrand);
+      mockBrandsRepo.findOne.mockResolvedValue(brandWithTakenName); // Name is taken
 
       // Act
       const result = await updateBrandUseCase.execute(input);
@@ -142,8 +147,8 @@ describe('UpdateBrandUseCase', () => {
         expect(result.error.code).toBe('BRAND_NAME_ALREADY_EXISTS');
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
-      expect(mockBrandsRepo.findByName).toHaveBeenCalledWith('Taken Name');
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('nameEn', 'Taken Name'));
       expect(mockBrandsRepo.update).not.toHaveBeenCalled();
     });
 
@@ -175,7 +180,7 @@ describe('UpdateBrandUseCase', () => {
         new Date(),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(existingBrand);
+      mockBrandsRepo.findOne.mockResolvedValue(existingBrand);
       mockBrandsRepo.update.mockResolvedValue(updatedBrand);
 
       // Act

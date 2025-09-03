@@ -1,29 +1,68 @@
 import { UpdateBeatUseCase } from './update-beat.usecase';
-import { IBeatsRepo } from '../../../domain/repositories/beats-repo';
 import { Beat } from '../../../domain/entities/beat';
 import { BeatNotFoundError } from '../../../domain/errors/beat-errors';
 import { isOk, isErr } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Influencer } from '../../../domain/entities/influencer';
+import { Brand } from '../../../domain/entities/brand';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('UpdateBeatUseCase', () => {
   let updateBeatUseCase: UpdateBeatUseCase;
-  let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
+  let mockBeatsRepo: jest.Mocked<IBaseRepository<Beat, number>>;
+  let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
 
   beforeEach(() => {
     mockBeatsRepo = {
-      findById: jest.fn(),
+      findOne: jest.fn(),
+      findMany: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      countByInfluencer: jest.fn(),
-      countByBrand: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
-    updateBeatUseCase = new UpdateBeatUseCase(mockBeatsRepo);
+    mockInfluencersRepo = {
+      findOne: jest.fn(),
+      findMany: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+    };
+
+    mockBrandsRepo = {
+      findOne: jest.fn(),
+      findMany: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+    };
+
+    updateBeatUseCase = new UpdateBeatUseCase(mockBeatsRepo, mockInfluencersRepo, mockBrandsRepo);
   });
 
   describe('execute', () => {
+    const mockInfluencer = new Influencer(1, 'testuser', 'test@example.com', 'Test User EN', 'Test User AR', 'profile.jpg', [], new Date(), new Date());
+    const mockBrand = new Brand(2, 'Test Brand EN', 'Test Brand AR', 'logo.jpg', 'website.com', new Date(), new Date());
+
     it('should update beat successfully with all fields', async () => {
       // Arrange
       const input = {
@@ -42,6 +81,8 @@ describe('UpdateBeatUseCase', () => {
         'draft',
         1,
         2,
+        mockInfluencer,
+        mockBrand,
         new Date('2024-01-01'),
         new Date('2024-01-01'),
       );
@@ -54,11 +95,13 @@ describe('UpdateBeatUseCase', () => {
         'published',
         1,
         2,
+        mockInfluencer,
+        mockBrand,
         new Date('2024-01-01'),
         new Date('2024-01-02'),
       );
 
-      mockBeatsRepo.findById.mockResolvedValue(existingBeat);
+      mockBeatsRepo.findOne.mockResolvedValue(existingBeat);
       mockBeatsRepo.update.mockResolvedValue(updatedBeat);
 
       // Act
@@ -74,7 +117,7 @@ describe('UpdateBeatUseCase', () => {
         expect(result.value.statusKey).toBe('published');
       }
 
-      expect(mockBeatsRepo.findById).toHaveBeenCalledWith(123);
+      expect(mockBeatsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Beat>().whereEqual('id', 123));
       expect(mockBeatsRepo.update).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 123,
@@ -101,6 +144,10 @@ describe('UpdateBeatUseCase', () => {
         'draft',
         1,
         2,
+        mockInfluencer,
+        mockBrand,
+        new Date('2024-01-01'),
+        new Date('2024-01-01'),
       );
 
       const updatedBeat = new Beat(
@@ -111,9 +158,13 @@ describe('UpdateBeatUseCase', () => {
         'draft',
         1,
         2,
+        mockInfluencer,
+        mockBrand,
+        new Date('2024-01-01'),
+        new Date('2024-01-02'),
       );
 
-      mockBeatsRepo.findById.mockResolvedValue(existingBeat);
+      mockBeatsRepo.findOne.mockResolvedValue(existingBeat);
       mockBeatsRepo.update.mockResolvedValue(updatedBeat);
 
       // Act
@@ -140,7 +191,7 @@ describe('UpdateBeatUseCase', () => {
         caption: 'Updated caption',
       };
 
-      mockBeatsRepo.findById.mockResolvedValue(null);
+      mockBeatsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await updateBeatUseCase.execute(input);
@@ -153,7 +204,7 @@ describe('UpdateBeatUseCase', () => {
         expect(result.error.message).toContain('Beat not found with ID: 999');
       }
 
-      expect(mockBeatsRepo.findById).toHaveBeenCalledWith(999);
+      expect(mockBeatsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Beat>().whereEqual('id', 999));
       expect(mockBeatsRepo.update).not.toHaveBeenCalled();
     });
 
@@ -167,10 +218,10 @@ describe('UpdateBeatUseCase', () => {
         statusKey: undefined,
       };
 
-      const existingBeat = new Beat(123, 'Original', 'old.mp4', 'old.jpg', 'draft', 1, 2);
-      const updatedBeat = new Beat(123, 'Original', 'https://example.com/new-video.mp4', 'old.jpg', 'draft', 1, 2);
+      const existingBeat = new Beat(123, 'Original', 'old.mp4', 'old.jpg', 'draft', 1, 2, mockInfluencer, mockBrand, new Date('2024-01-01'), new Date('2024-01-01'));
+      const updatedBeat = new Beat(123, 'Original', 'https://example.com/new-video.mp4', 'old.jpg', 'draft', 1, 2, mockInfluencer, mockBrand, new Date('2024-01-01'), new Date('2024-01-02'));
 
-      mockBeatsRepo.findById.mockResolvedValue(existingBeat);
+      mockBeatsRepo.findOne.mockResolvedValue(existingBeat);
       mockBeatsRepo.update.mockResolvedValue(updatedBeat);
 
       // Act

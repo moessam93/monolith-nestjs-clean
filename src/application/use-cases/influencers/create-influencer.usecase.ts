@@ -1,16 +1,15 @@
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
-import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platforms-repo';
 import { CreateInfluencerInput, InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { ExistingSocialPlatformForInfluencerError, InfluencerUsernameAlreadyExistsError} from '../../../domain/errors/influencer-errors';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 
 export class CreateInfluencerUseCase {
   constructor(
-    private readonly influencersRepo: IInfluencersRepo,
-    private readonly socialPlatformsRepo: ISocialPlatformsRepo,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
+    private readonly socialPlatformsRepo: IBaseRepository<SocialPlatform, number>,
   ) {}
 
   async execute(input: CreateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerUsernameAlreadyExistsError | ExistingSocialPlatformForInfluencerError>> {

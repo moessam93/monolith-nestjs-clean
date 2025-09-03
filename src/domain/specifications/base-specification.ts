@@ -124,4 +124,10 @@ export class BaseSpecification<T> {
     this.search = { fields, term };
     return this;
   }
+
+  // Custom search for nested fields
+  customSearch(searchConditions: any): this {
+    this.criteria.push(searchConditions);
+    return this;
+  }
 }

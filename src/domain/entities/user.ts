@@ -1,9 +1,10 @@
+import { UserRole } from './user-role';
 export class User {
   constructor(
     public readonly id: string,
     public name: string,
     public email: string,
-    public roles: string[], // ['SuperAdmin'|'Admin'|'Executive']
+    public userRoles: UserRole[],
     public phoneNumber?: string,
     public phoneNumberCountryCode?: string,
     public passwordHash?: string,

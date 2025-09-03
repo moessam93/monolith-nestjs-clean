@@ -1,29 +1,48 @@
 import { LoginUseCase } from './login.usecase';
-import { IUsersRepo } from '../../../domain/repositories/users-repo';
 import { PasswordHasherPort } from '../../ports/password-hasher.port';
 import { TokenSignerPort } from '../../ports/token-signer.port';
 import { User } from '../../../domain/entities/user';
+import { Role } from '../../../domain/entities/role';
+import { UserRole } from '../../../domain/entities/user-role';
 import { InvalidCredentialsError, UserNotFoundError } from '../../../domain/errors/user-errors';
 import { isOk, isErr } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('LoginUseCase', () => {
   let loginUseCase: LoginUseCase;
-  let mockUsersRepo: jest.Mocked<IUsersRepo>;
+  let mockUsersRepo: jest.Mocked<IBaseRepository<User, string>>;
+  let mockRolesRepo: jest.Mocked<IBaseRepository<Role, number>>;
   let mockPasswordHasher: jest.Mocked<PasswordHasherPort>;
   let mockTokenSigner: jest.Mocked<TokenSignerPort>;
 
   beforeEach(() => {
     mockUsersRepo = {
-      findByEmail: jest.fn(),
-      findById: jest.fn(),
+      findOne: jest.fn(),
+      findMany: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-      setRoles: jest.fn(),
       exists: jest.fn(),
-      existsByEmail: jest.fn(),
       count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+    };
+
+    mockRolesRepo = {
+      findOne: jest.fn(),
+      findMany: jest.fn(),
+      list: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     mockPasswordHasher = {
@@ -39,6 +58,7 @@ describe('LoginUseCase', () => {
 
     loginUseCase = new LoginUseCase(
       mockUsersRepo,
+      mockRolesRepo,
       mockPasswordHasher,
       mockTokenSigner,
     );
@@ -47,17 +67,20 @@ describe('LoginUseCase', () => {
   describe('execute', () => {
     it('should return login output when credentials are valid', async () => {
       // Arrange
+      const userRole = new UserRole(1, 'user-123', 1);
       const mockUser = new User(
         'user-123',
         'John Doe',
         'john@example.com',
-        ['Admin'],
-        undefined,
-        undefined,
+        [userRole],
+        '+1234567890',
+        '+1',
         'hashed-password',
         new Date(),
         new Date(),
       );
+
+      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
       const input = {
         email: 'john@example.com',
@@ -65,14 +88,14 @@ describe('LoginUseCase', () => {
         expiresIn: '1h',
       };
 
-      mockUsersRepo.findByEmail.mockResolvedValue(mockUser);
+      mockUsersRepo.findOne.mockResolvedValue(mockUser);
+      mockRolesRepo.findMany.mockResolvedValue([adminRole]);
       mockPasswordHasher.compare.mockResolvedValue(true);
       mockTokenSigner.sign.mockResolvedValue({
         token: 'jwt-token',
         exp: 1234567890,
       });
 
-      // Act
       const result = await loginUseCase.execute(input);
 
       // Assert
@@ -81,18 +104,28 @@ describe('LoginUseCase', () => {
         expect(result.value.id).toBe('user-123');
         expect(result.value.email).toBe('john@example.com');
         expect(result.value.name).toBe('John Doe');
-        expect(result.value.roles).toEqual(['Admin']);
+        expect(result.value.roles).toEqual([{id: 1, nameEn: 'Administrator', nameAr: 'المدير', key: 'Admin'}]);
         expect(result.value.access_token).toBe('jwt-token');
       }
 
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('john@example.com');
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: [{ email: 'john@example.com' }],
+          includes: ['userRoles.role']
+        })
+      );
+      expect(mockRolesRepo.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: [{ id: { in: [1] } }]
+        })
+      );
       expect(mockPasswordHasher.compare).toHaveBeenCalledWith('password123', 'hashed-password');
       expect(mockTokenSigner.sign).toHaveBeenCalledWith(
         {
           sub: 'user-123',
           email: 'john@example.com',
           name: 'John Doe',
-          roles: ['Admin'],
+          roles: [userRole],
         },
         { expiresIn: '1h' }
       );
@@ -106,7 +139,7 @@ describe('LoginUseCase', () => {
         expiresIn: '1h',
       };
 
-      mockUsersRepo.findByEmail.mockResolvedValue(null);
+      mockUsersRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await loginUseCase.execute(input);
@@ -118,20 +151,26 @@ describe('LoginUseCase', () => {
         expect(result.error.code).toBe('USER_NOT_FOUND');
       }
 
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('nonexistent@example.com');
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: [{ email: 'nonexistent@example.com' }],
+          includes: ['userRoles.role']
+        })
+      );
       expect(mockPasswordHasher.compare).not.toHaveBeenCalled();
       expect(mockTokenSigner.sign).not.toHaveBeenCalled();
     });
 
     it('should return InvalidCredentialsError when password is incorrect', async () => {
       // Arrange
+      const userRole = new UserRole(1, 'user-123', 1);
       const mockUser = new User(
         'user-123',
         'John Doe',
         'john@example.com',
-        ['Admin'],
-        undefined,
-        undefined,
+        [userRole],
+        '+1234567890',
+        '+1',
         'hashed-password',
         new Date(),
         new Date(),
@@ -143,7 +182,7 @@ describe('LoginUseCase', () => {
         expiresIn: '1h',
       };
 
-      mockUsersRepo.findByEmail.mockResolvedValue(mockUser);
+      mockUsersRepo.findOne.mockResolvedValue(mockUser);
       mockPasswordHasher.compare.mockResolvedValue(false);
 
       // Act
@@ -156,20 +195,26 @@ describe('LoginUseCase', () => {
         expect(result.error.code).toBe('INVALID_CREDENTIALS');
       }
 
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('john@example.com');
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: [{ email: 'john@example.com' }],
+          includes: ['userRoles.role']
+        })
+      );
       expect(mockPasswordHasher.compare).toHaveBeenCalledWith('wrong-password', 'hashed-password');
       expect(mockTokenSigner.sign).not.toHaveBeenCalled();
     });
 
     it('should return InvalidCredentialsError when user has no password hash', async () => {
       // Arrange
+      const userRole = new UserRole(1, 'user-123', 1);
       const mockUser = new User(
         'user-123',
         'John Doe',
         'john@example.com',
-        ['Admin'],
-        undefined,
-        undefined,
+        [userRole],
+        '+1234567890',
+        '+1',
         undefined, // No password hash
         new Date(),
         new Date(),
@@ -181,7 +226,7 @@ describe('LoginUseCase', () => {
         expiresIn: '1h',
       };
 
-      mockUsersRepo.findByEmail.mockResolvedValue(mockUser);
+      mockUsersRepo.findOne.mockResolvedValue(mockUser);
 
       // Act
       const result = await loginUseCase.execute(input);
@@ -193,7 +238,12 @@ describe('LoginUseCase', () => {
         expect(result.error.code).toBe('INVALID_CREDENTIALS');
       }
 
-      expect(mockUsersRepo.findByEmail).toHaveBeenCalledWith('john@example.com');
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          criteria: [{ email: 'john@example.com' }],
+          includes: ['userRoles.role']
+        })
+      );
       expect(mockPasswordHasher.compare).not.toHaveBeenCalled();
       expect(mockTokenSigner.sign).not.toHaveBeenCalled();
     });

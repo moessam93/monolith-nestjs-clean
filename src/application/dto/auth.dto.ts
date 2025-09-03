@@ -8,7 +8,7 @@ export interface LoginOutput {
   id: string;
   email: string;
   name: string;
-  roles: string[];
+  roles: UserRoleOutput[];
   access_token: string;
   expiredAt: Date;
 }
@@ -21,5 +21,12 @@ export interface UserValidationOutput {
   id: string;
   email: string;
   name: string;
-  roles: string[];
+  roles: UserRoleOutput[];
+}
+
+export interface UserRoleOutput {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  key: string;
 }

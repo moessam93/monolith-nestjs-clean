@@ -1,17 +1,18 @@
-import { IUsersRepo } from '../repositories/users-repo';
-import { IRolesRepo } from '../repositories/roles-repo';
-import { IBeatsRepo } from '../repositories/beats-repo';
-import { IBrandsRepo } from '../repositories/brands-repo';
-import { IInfluencersRepo } from '../repositories/influencers-repo';
-import { ISocialPlatformsRepo } from '../repositories/social-platforms-repo';
+import { IBaseRepository } from '../repositories/base-repo';
+import { User } from '../entities/user';
+import { Role } from '../entities/role';
+import { Beat } from '../entities/beat';
+import { Brand } from '../entities/brand';
+import { Influencer } from '../entities/influencer';
+import { SocialPlatform } from '../entities/social-platform';
 
 export interface IRepositories {
-  users: IUsersRepo;
-  roles: IRolesRepo;
-  beats: IBeatsRepo;
-  brands: IBrandsRepo;
-  influencers: IInfluencersRepo;
-  socialPlatforms: ISocialPlatformsRepo;
+  users: IBaseRepository<User, string>;
+  roles: IBaseRepository<Role, number>;
+  beats: IBaseRepository<Beat, number>;
+  brands: IBaseRepository<Brand, number>;
+  influencers: IBaseRepository<Influencer, number>;
+  socialPlatforms: IBaseRepository<SocialPlatform, number>;
 }
 
 export interface IUnitOfWork {
