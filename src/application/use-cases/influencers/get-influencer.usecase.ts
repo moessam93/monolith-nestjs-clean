@@ -1,13 +1,13 @@
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
 import { Influencer } from '../../../domain/entities/influencer';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 
 export class GetInfluencerUseCase {
   constructor(
-    private readonly influencersRepo: IInfluencersRepo,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
   ) {}
 
   async execute(id: number): Promise<Result<InfluencerOutput, InfluencerNotFoundError>> {

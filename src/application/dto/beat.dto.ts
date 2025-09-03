@@ -23,8 +23,8 @@ export interface BeatOutput {
   mediaUrl: string;
   thumbnailUrl: string;
   statusKey: string;
-  influencerId: number;
-  brandId: number;
+  influencer: BeatInfluencerOutput;
+  brand: BeatBrandOutput;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,4 +36,20 @@ export interface ListBeatsInput {
   influencerId?: number;
   brandId?: number;
   statusKey?: string;
+}
+
+export interface BeatInfluencerOutput {
+  id: number;
+  username: string;
+  nameEn: string;
+  nameAr: string;
+  profilePictureUrl: string;
+}
+
+export interface BeatBrandOutput {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  logoUrl: string;
+  websiteUrl: string;
 }

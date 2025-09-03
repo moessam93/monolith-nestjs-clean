@@ -1,5 +1,4 @@
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
-import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platforms-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 import { UpdateSocialPlatformInput, SocialPlatformOutput } from '../../dto/influencer.dto';
 import { Result, ok, err } from '../../common/result';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
@@ -9,8 +8,8 @@ import { Influencer } from '../../../domain/entities/influencer';
 
 export class ManageSocialPlatformUseCase {
   constructor(
-    private readonly influencersRepo: IInfluencersRepo,
-    private readonly socialPlatformsRepo: ISocialPlatformsRepo,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
+    private readonly socialPlatformsRepo: IBaseRepository<SocialPlatform, number>,
   ) {}
 
   async addOrUpdate(input: UpdateSocialPlatformInput): Promise<Result<SocialPlatformOutput, InfluencerNotFoundError | ExistingSocialPlatformForInfluencerError>> {

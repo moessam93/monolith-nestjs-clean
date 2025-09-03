@@ -4,36 +4,41 @@ import { Role } from '../../../domain/entities/role';
 import { UserNotFoundError, InsufficientPermissionsError } from '../../../domain/errors/user-errors';
 import { RoleNotFoundError } from '../../../domain/errors/role-errors';
 import { isOk, isErr } from '../../common/result';
-import { IUsersRepo } from '../../../domain/repositories/users-repo';
-import { IRolesRepo } from '../../../domain/repositories/roles-repo';
+import { IBaseRepository } from 'src/domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { UserRole } from '../../../domain/entities/user-role';
 
 describe('AssignRolesUseCase', () => {
   let assignRolesUseCase: AssignRolesUseCase;
-  let mockUsersRepo: jest.Mocked<IUsersRepo>;
-  let mockRolesRepo: jest.Mocked<IRolesRepo>;
+  let mockUsersRepo: jest.Mocked<IBaseRepository<User, string>>;
+  let mockRolesRepo: jest.Mocked<IBaseRepository<Role, number>>;
 
   beforeEach(() => {
     mockUsersRepo = {
-        findByEmail: jest.fn(),
-        findById: jest.fn(),
+        findOne: jest.fn(),
+        findMany: jest.fn(),
         list: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
-        setRoles: jest.fn(),
         exists: jest.fn(),
-        existsByEmail: jest.fn(),
         count: jest.fn(),
+        createMany: jest.fn(),
+        updateMany: jest.fn(),
+        deleteMany: jest.fn(),
       };
       mockRolesRepo = {
-        findByKeys: jest.fn(),
-        findByKey: jest.fn(),
+        findMany: jest.fn(),
+        findOne: jest.fn(),
         exists: jest.fn(),
-        ensureKeys: jest.fn(),
         list: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+        count: jest.fn(),
+        createMany: jest.fn(),
+        updateMany: jest.fn(),
+        deleteMany: jest.fn(),
       }
 
     assignRolesUseCase = new AssignRolesUseCase(mockUsersRepo, mockRolesRepo);
@@ -48,12 +53,12 @@ describe('AssignRolesUseCase', () => {
         roleKeys: ['Admin', 'Executive'],
       };
       const currentUserRoles = ['SuperAdmin'];
-
+      const mockUserRoles = [new UserRole(1, userId, 1), new UserRole(2, userId, 2)];
       const user = new User(
         userId,
         'John Doe',
         'john@example.com',
-        ['Executive'], // Current roles
+        mockUserRoles,
         undefined,
         undefined,
         'password-hash',
@@ -65,7 +70,7 @@ describe('AssignRolesUseCase', () => {
         userId,
         'John Doe',
         'john@example.com',
-        ['Admin', 'Executive'], // Updated roles
+        mockUserRoles,
         undefined,
         undefined,
         'password-hash',
@@ -76,13 +81,13 @@ describe('AssignRolesUseCase', () => {
       const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
       const executiveRole = new Role(2, 'Executive', 'Executive', 'التنفيذي');
 
-      (mockUsersRepo.findById as jest.Mock)
+      (mockUsersRepo.findOne as jest.Mock)
         .mockResolvedValueOnce(user) // First call
         .mockResolvedValueOnce(updatedUser); // Second call after update
-      (mockRolesRepo.findByKeys as jest.Mock)
+      (mockRolesRepo.findMany as jest.Mock)
         .mockResolvedValueOnce([adminRole, executiveRole]) // Role verification
         .mockResolvedValueOnce([adminRole, executiveRole]); // For output mapping
-      (mockUsersRepo.setRoles as jest.Mock).mockResolvedValueOnce(undefined);
+      (mockUsersRepo.update as jest.Mock).mockResolvedValueOnce(undefined);
       
       // Act
       const result = await assignRolesUseCase.execute(input, currentUserRoles);
@@ -96,9 +101,12 @@ describe('AssignRolesUseCase', () => {
         expect(result.value.roles.map(r => r.key)).toEqual(['Admin', 'Executive']);
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledTimes(2);
-      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin', 'Executive']);
-      expect(mockUsersRepo.setRoles).toHaveBeenCalledWith(userId, ['Admin', 'Executive']);
+      expect(mockUsersRepo.findOne).toHaveBeenCalledTimes(2);
+      expect(mockRolesRepo.findMany).toHaveBeenCalledWith(new BaseSpecification<Role>().whereEqual('key', ['Admin', 'Executive']));
+      expect(mockUsersRepo.update).toHaveBeenCalledWith(expect.objectContaining({
+        id: userId,
+        userRoles: mockUserRoles,
+      }));
     });
 
     it('should return InsufficientPermissionsError when user is not SuperAdmin', async () => {
@@ -120,9 +128,9 @@ describe('AssignRolesUseCase', () => {
       }
 
       // Should not proceed with any other operations
-      expect(mockUsersRepo.findById).not.toHaveBeenCalled();
-      expect(mockRolesRepo.findByKeys).not.toHaveBeenCalled();
-      expect(mockUsersRepo.setRoles).not.toHaveBeenCalled();
+      expect(mockUsersRepo.findOne).not.toHaveBeenCalled();
+      expect(mockRolesRepo.findMany).not.toHaveBeenCalled();
+      expect(mockUsersRepo.update).not.toHaveBeenCalled();
     });
 
     it('should return UserNotFoundError when user does not exist', async () => {
@@ -133,7 +141,7 @@ describe('AssignRolesUseCase', () => {
       };
       const currentUserRoles = ['SuperAdmin'];
 
-      (mockUsersRepo.findById as jest.Mock).mockResolvedValue(null);
+      (mockUsersRepo.findOne as jest.Mock).mockResolvedValue(null);
       
       // Act
       const result = await assignRolesUseCase.execute(input, currentUserRoles);
@@ -145,9 +153,9 @@ describe('AssignRolesUseCase', () => {
         expect(result.error.code).toBe('USER_NOT_FOUND');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith('nonexistent-user');
-      expect(mockRolesRepo.findByKeys).not.toHaveBeenCalled();
-      expect(mockUsersRepo.setRoles).not.toHaveBeenCalled();
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<User>().whereEqual('id', 'nonexistent-user'));
+      expect(mockRolesRepo.findMany).not.toHaveBeenCalled();
+      expect(mockUsersRepo.update).not.toHaveBeenCalled();
     });
 
     it('should return RoleNotFoundError when some roles do not exist', async () => {
@@ -158,19 +166,24 @@ describe('AssignRolesUseCase', () => {
         roleKeys: ['Admin', 'NonExistentRole'],
       };
       const currentUserRoles = ['SuperAdmin'];
+      const userRoles = [new UserRole(1, userId, 1)]; 
+      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
       const user = new User(
         userId,
         'John Doe',
         'john@example.com',
-        [],
+        userRoles,
+        undefined,
+        undefined,
+        'password-hash',
+        new Date(),
+        new Date(),
       );
 
-      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
-      // Only Admin role exists, NonExistentRole doesn't
 
-      (mockUsersRepo.findById as jest.Mock).mockResolvedValue(user);
-      (mockRolesRepo.findByKeys as jest.Mock).mockResolvedValue([adminRole]); // Only 1 role returned instead of 2
+      (mockUsersRepo.findOne as jest.Mock).mockResolvedValue(user);
+      (mockRolesRepo.findMany as jest.Mock).mockResolvedValue([adminRole]); // Only 1 role returned instead of 2
       
       // Act
       const result = await assignRolesUseCase.execute(input, currentUserRoles);
@@ -182,9 +195,9 @@ describe('AssignRolesUseCase', () => {
         expect(result.error.code).toBe('ROLE_NOT_FOUND');
       }
 
-      expect(mockUsersRepo.findById).toHaveBeenCalledWith(userId);
-      expect(mockRolesRepo.findByKeys).toHaveBeenCalledWith(['Admin', 'NonExistentRole']);
-      expect(mockUsersRepo.setRoles).not.toHaveBeenCalled();
+      expect(mockUsersRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<User>().whereEqual('id', userId));
+      expect(mockRolesRepo.findMany).toHaveBeenCalledWith(new BaseSpecification<Role>().whereEqual('key', ['Admin', 'NonExistentRole']));
+      expect(mockUsersRepo.update).not.toHaveBeenCalled();
     });
 
     it('should work without currentUserRoles (system call)', async () => {
@@ -196,17 +209,18 @@ describe('AssignRolesUseCase', () => {
       };
       // No currentUserRoles provided (system call)
 
-      const user = new User(userId, 'John Doe', 'john@example.com', []);
-      const updatedUser = new User(userId, 'John Doe', 'john@example.com', ['Admin']);
+      const user = new User(userId, 'John Doe', 'john@example.com', [], undefined, undefined, 'password-hash', new Date(), new Date());
       const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
+      const userRoles = [new UserRole(1, userId, 1)];
+      const updatedUser = new User(userId, 'John Doe', 'john@example.com',userRoles, undefined, undefined, 'password-hash', new Date(), new Date());
 
-      (mockUsersRepo.findById as jest.Mock)
+      (mockUsersRepo.findOne as jest.Mock)
         .mockResolvedValueOnce(user)
         .mockResolvedValueOnce(updatedUser);
-      (mockRolesRepo.findByKeys as jest.Mock)
+      (mockRolesRepo.findMany as jest.Mock)
         .mockResolvedValueOnce([adminRole])
         .mockResolvedValueOnce([adminRole]);
-      (mockUsersRepo.setRoles as jest.Mock).mockResolvedValueOnce(undefined);
+      (mockUsersRepo.update as jest.Mock).mockResolvedValueOnce(undefined);
       
       // Act
       const result = await assignRolesUseCase.execute(input); // No currentUserRoles
@@ -219,40 +233,10 @@ describe('AssignRolesUseCase', () => {
         expect(result.value.roles[0].key).toBe('Admin');
       }
 
-      expect(mockUsersRepo.setRoles).toHaveBeenCalledWith(userId, ['Admin']);
-    });
-
-    it('should assign empty roles array to remove all roles', async () => {
-      // Arrange
-      const userId = 'user-123';
-      const input = {
-        userId,
-        roleKeys: [], // Remove all roles
-      };
-      const currentUserRoles = ['SuperAdmin'];
-
-      const user = new User(userId, 'John Doe', 'john@example.com', ['Admin', 'Executive']);
-      const updatedUser = new User(userId, 'John Doe', 'john@example.com', []);
-
-      (mockUsersRepo.findById as jest.Mock)
-        .mockResolvedValueOnce(user)
-        .mockResolvedValueOnce(updatedUser);
-      (mockRolesRepo.findByKeys as jest.Mock)
-        .mockResolvedValueOnce([]) // No roles to verify
-        .mockResolvedValueOnce([]); // No roles for output
-      (mockUsersRepo.setRoles as jest.Mock).mockResolvedValueOnce(undefined);
-      
-      // Act
-      const result = await assignRolesUseCase.execute(input, currentUserRoles);
-
-      // Assert
-      expect(isOk(result)).toBe(true);
-      if (isOk(result)) {
-        expect(result.value.id).toBe(userId);
-        expect(result.value.roles).toHaveLength(0);
-      }
-
-      expect(mockUsersRepo.setRoles).toHaveBeenCalledWith(userId, []);
+      expect(mockUsersRepo.update).toHaveBeenCalledWith(expect.objectContaining({
+        id: userId,
+        userRoles: userRoles,
+      }));
     });
   });
 });

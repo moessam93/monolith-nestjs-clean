@@ -1,34 +1,42 @@
 import { DeleteBrandUseCase } from './delete-brand.usecase';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { Brand } from '../../../domain/entities/brand';
 import { BrandHasBeatsError, BrandNotFoundError } from '../../../domain/errors/brand-errors';
 import { isOk, isErr } from '../../common/result';
-import { IBeatsRepo } from '../../../domain/repositories/beats-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { Beat } from '../../../domain/entities/beat';
 
 describe('DeleteBrandUseCase', () => {
   let deleteBrandUseCase: DeleteBrandUseCase;
-  let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
-let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
+let mockBeatsRepo: jest.Mocked<IBaseRepository<Beat, number>>;
   beforeEach(() => {
     mockBrandsRepo = {
-      findById: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      findByName: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     mockBeatsRepo = {
-      findById: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      countByInfluencer: jest.fn(),
-      countByBrand: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     deleteBrandUseCase = new DeleteBrandUseCase(mockBrandsRepo, mockBeatsRepo);
@@ -49,7 +57,7 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
         new Date(),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(brand);
+      mockBrandsRepo.findOne.mockResolvedValue(brand);
       mockBrandsRepo.delete.mockResolvedValue();
 
       // Act
@@ -61,7 +69,7 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
         expect(result.value).toBeUndefined();
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
       expect(mockBrandsRepo.delete).toHaveBeenCalledWith(brandId);
     });
 
@@ -69,7 +77,7 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
       // Arrange
       const brandId = 999;
 
-      mockBrandsRepo.findById.mockResolvedValue(null);
+      mockBrandsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await deleteBrandUseCase.execute(brandId);
@@ -81,7 +89,7 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
         expect(result.error.message).toContain('999');
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
       expect(mockBrandsRepo.delete).not.toHaveBeenCalled();
     });
 
@@ -101,8 +109,8 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
 
       const deleteError = new BrandHasBeatsError(brandId);
 
-      mockBeatsRepo.countByBrand.mockResolvedValue(1);
-      mockBrandsRepo.findById.mockResolvedValue(brand);
+      mockBeatsRepo.count.mockResolvedValue(1);
+      mockBrandsRepo.findOne.mockResolvedValue(brand);
       mockBrandsRepo.delete.mockRejectedValue(deleteError);
 
       // Act & Assert
@@ -112,7 +120,8 @@ let mockBeatsRepo: jest.Mocked<IBeatsRepo>;
         expect(result.error).toBeInstanceOf(BrandHasBeatsError);
         expect(result.error.message).toContain('Brand has beats: 1');
       }
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBeatsRepo.count).toHaveBeenCalledWith(new BaseSpecification<Beat>().whereEqual('brandId', brandId));
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
       expect(mockBrandsRepo.delete).not.toHaveBeenCalled();
     });
   });

@@ -1,29 +1,30 @@
-import { IBeatsRepo } from '../../../domain/repositories/beats-repo';
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Influencer } from '../../../domain/entities/influencer';
 import { CreateBeatInput, BeatOutput } from '../../dto/beat.dto';
 import { Result, ok, err } from '../../common/result';
 import { Beat } from '../../../domain/entities/beat';
 import { BeatBrandNotFoundError, BeatInfluencerNotFoundError } from '../../../domain/errors/beat-errors';
+import { Brand } from '../../../domain/entities/brand';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 export class CreateBeatUseCase {
   constructor(
-    private readonly beatsRepo: IBeatsRepo,
-    private readonly influencersRepo: IInfluencersRepo,
-    private readonly brandsRepo: IBrandsRepo,
+    private readonly beatsRepo: IBaseRepository<Beat, number>,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
+    private readonly brandsRepo: IBaseRepository<Brand, number>,
   ) {}
 
   async execute(input: CreateBeatInput): Promise<Result<BeatOutput, BeatInfluencerNotFoundError | BeatBrandNotFoundError>> {
     const { caption, mediaUrl, thumbnailUrl, statusKey, influencerId, brandId } = input;
 
     // Verify influencer exists
-    const influencer = await this.influencersRepo.findById(influencerId);
+    const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', influencerId));
     if (!influencer) {
       return err(new BeatInfluencerNotFoundError(influencerId));
     }
 
     // Verify brand exists
-    const brand = await this.brandsRepo.findById(brandId);
+    const brand = await this.brandsRepo.findOne(new BaseSpecification<Brand>().whereEqual('id', brandId));
     if (!brand) {
       return err(new BeatBrandNotFoundError(brandId));
     }
@@ -37,6 +38,8 @@ export class CreateBeatUseCase {
       statusKey,
       influencerId,
       brandId,
+      influencer,
+      brand,
       new Date(),
       new Date(),
     );
@@ -50,8 +53,20 @@ export class CreateBeatUseCase {
       mediaUrl: createdBeat.mediaUrl,
       thumbnailUrl: createdBeat.thumbnailUrl,
       statusKey: createdBeat.statusKey,
-      influencerId: createdBeat.influencerId,
-      brandId: createdBeat.brandId,
+      influencer: {
+        id: influencer.id,
+        username: influencer.username,
+        nameEn: influencer.nameEn,
+        nameAr: influencer.nameAr,
+        profilePictureUrl: influencer.profilePictureUrl,
+      },
+      brand: {
+        id: brand.id,
+        nameEn: brand.nameEn,
+        nameAr: brand.nameAr,
+        logoUrl: brand.logoUrl,
+        websiteUrl: brand.websiteUrl,
+      },
       createdAt: createdBeat.createdAt!,
       updatedAt: createdBeat.updatedAt!,
     });

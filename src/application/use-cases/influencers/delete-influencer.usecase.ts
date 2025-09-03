@@ -1,19 +1,27 @@
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { Result, ok, err } from '../../common/result';
-import { InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
+import { InfluencerHasBeatsError, InfluencerNotFoundError } from '../../../domain/errors/influencer-errors';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
 import { Influencer } from '../../../domain/entities/influencer';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Beat } from '../../../domain/entities/beat';
 
 export class DeleteInfluencerUseCase {
   constructor(
-    private readonly influencersRepo: IInfluencersRepo,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
+    private readonly beatsRepo: IBaseRepository<Beat, number>,
   ) {}
 
-  async execute(id: number): Promise<Result<void, InfluencerNotFoundError>> {
+  async execute(id: number): Promise<Result<void, InfluencerNotFoundError | InfluencerHasBeatsError>> {
     // Check if influencer exists
     const influencer = await this.influencersRepo.findOne(new BaseSpecification<Influencer>().whereEqual('id', id));
     if (!influencer) {
       return err(new InfluencerNotFoundError(id));
+    }
+
+    // Check if influencer has beats
+    const beats = await this.beatsRepo.count(new BaseSpecification<Beat>().whereEqual('influencerId', id));
+    if (beats > 0) {
+      return err(new InfluencerHasBeatsError(id));
     }
 
     // Delete influencer (social platforms will be cascade deleted)

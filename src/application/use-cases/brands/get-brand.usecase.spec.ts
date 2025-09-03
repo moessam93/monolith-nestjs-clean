@@ -1,21 +1,27 @@
 import { GetBrandUseCase } from './get-brand.usecase';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { Brand } from '../../../domain/entities/brand';
 import { BrandNotFoundError } from '../../../domain/errors/brand-errors';
 import { isOk, isErr } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 describe('GetBrandUseCase', () => {
   let getBrandUseCase: GetBrandUseCase;
-  let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
 
   beforeEach(() => {
     mockBrandsRepo = {
-      findById: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     getBrandUseCase = new GetBrandUseCase(mockBrandsRepo);
@@ -36,7 +42,7 @@ describe('GetBrandUseCase', () => {
         new Date('2023-06-01'),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(brand);
+      mockBrandsRepo.findOne.mockResolvedValue(brand);
 
       // Act
       const result = await getBrandUseCase.execute(brandId);
@@ -53,14 +59,14 @@ describe('GetBrandUseCase', () => {
         expect(result.value.updatedAt).toEqual(new Date('2023-06-01'));
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
     });
 
     it('should return BrandNotFoundError when brand does not exist', async () => {
       // Arrange
       const brandId = 999;
 
-      mockBrandsRepo.findById.mockResolvedValue(null);
+      mockBrandsRepo.findOne.mockResolvedValue(null);
 
       // Act
       const result = await getBrandUseCase.execute(brandId);
@@ -73,7 +79,7 @@ describe('GetBrandUseCase', () => {
         expect(result.error.message).toContain('999');
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
     });
 
     it('should handle brand with minimal data', async () => {
@@ -90,7 +96,7 @@ describe('GetBrandUseCase', () => {
         new Date('2023-02-01'),
       );
 
-      mockBrandsRepo.findById.mockResolvedValue(brand);
+      mockBrandsRepo.findOne.mockResolvedValue(brand);
 
       // Act
       const result = await getBrandUseCase.execute(brandId);
@@ -107,7 +113,7 @@ describe('GetBrandUseCase', () => {
         expect(result.value.updatedAt).toEqual(new Date('2023-02-01'));
       }
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
     });
 
     it('should handle repository errors gracefully', async () => {
@@ -115,12 +121,12 @@ describe('GetBrandUseCase', () => {
       const brandId = 1;
       const repositoryError = new Error('Database connection failed');
 
-      mockBrandsRepo.findById.mockRejectedValue(repositoryError);
+      mockBrandsRepo.findOne.mockRejectedValue(repositoryError);
 
       // Act & Assert
       await expect(getBrandUseCase.execute(brandId)).rejects.toThrow('Database connection failed');
 
-      expect(mockBrandsRepo.findById).toHaveBeenCalledWith(brandId);
+      expect(mockBrandsRepo.findOne).toHaveBeenCalledWith(new BaseSpecification<Brand>().whereEqual('id', brandId));
     });
   });
 });

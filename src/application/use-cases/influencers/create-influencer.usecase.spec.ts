@@ -1,15 +1,13 @@
 import { CreateInfluencerUseCase } from './create-influencer.usecase';
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
-import { ISocialPlatformsRepo } from '../../../domain/repositories/social-platforms-repo';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk, isErr } from '../../common/result';
-import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 
 describe('CreateInfluencerUseCase', () => {
   let createInfluencerUseCase: CreateInfluencerUseCase;
-  let mockInfluencersRepo: jest.Mocked<IInfluencersRepo>;
-  let mockSocialPlatformsRepo: jest.Mocked<ISocialPlatformsRepo>;
+  let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
+  let mockSocialPlatformsRepo: jest.Mocked<IBaseRepository<SocialPlatform, number>>;
 
   beforeEach(() => {
     mockInfluencersRepo = {

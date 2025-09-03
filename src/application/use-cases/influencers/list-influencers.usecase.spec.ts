@@ -1,25 +1,27 @@
 import { ListInfluencersUseCase } from './list-influencers.usecase';
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk } from '../../common/result';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 
 describe('ListInfluencersUseCase', () => {
   let listInfluencersUseCase: ListInfluencersUseCase;
-  let mockInfluencersRepo: jest.Mocked<IInfluencersRepo>;
+  let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
 
   beforeEach(() => {
     mockInfluencersRepo = {
-      findById: jest.fn(),
-      findByUsername: jest.fn(),
-      findByEmail: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      existsByUsername: jest.fn(),
-      existsByEmail: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
     };
 
     listInfluencersUseCase = new ListInfluencersUseCase(mockInfluencersRepo);
@@ -67,7 +69,7 @@ describe('ListInfluencersUseCase', () => {
       mockInfluencersRepo.list.mockResolvedValue(mockResult);
 
       // Act
-      const result = await listInfluencersUseCase.execute(input);
+      const result = await listInfluencersUseCase.execute();
 
       // Assert
       expect(isOk(result)).toBe(true);
@@ -95,11 +97,7 @@ describe('ListInfluencersUseCase', () => {
         expect(result.value.data[1].socialPlatforms[0].key).toBe('youtube');
       }
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 1,
-        limit: 20,
-        search: undefined,
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().paginate({ page: 1, limit: 20 }));
     });
 
     it('should return paginated list with custom pagination parameters', async () => {
@@ -149,11 +147,7 @@ describe('ListInfluencersUseCase', () => {
         expect(result.value.meta.hasPreviousPage).toBe(true);
       }
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 2,
-        limit: 5,
-        search: 'test',
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().searchIn(['username', 'email', 'nameEn', 'nameAr'], 'test').paginate({ page: 2, limit: 5 }));
     });
 
     it('should return empty list when no influencers found', async () => {
@@ -183,11 +177,7 @@ describe('ListInfluencersUseCase', () => {
         expect(result.value.meta.hasPreviousPage).toBe(false);
       }
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 1,
-        limit: 20,
-        search: 'nonexistent',
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().searchIn(['username', 'email', 'nameEn', 'nameAr'], 'nonexistent').paginate({ page: 1, limit: 20 }));
     });
 
     it('should handle repository errors gracefully', async () => {
@@ -200,11 +190,7 @@ describe('ListInfluencersUseCase', () => {
       // Act & Assert
       await expect(listInfluencersUseCase.execute(input)).rejects.toThrow('Database connection failed');
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 1,
-        limit: 20,
-        search: undefined,
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().paginate({ page: 1, limit: 20 }));
     });
 
     it('should handle large page numbers correctly', async () => {
@@ -236,11 +222,7 @@ describe('ListInfluencersUseCase', () => {
         expect(result.value.meta.hasPreviousPage).toBe(true);
       }
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 10,
-        limit: 20,
-        search: undefined,
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().paginate({ page: 10, limit: 20 }));
     });
 
     it('should normalize page to 1 when page is less than 1', async () => {
@@ -267,11 +249,7 @@ describe('ListInfluencersUseCase', () => {
         expect(result.value.meta.page).toBe(0); // The use case doesn't normalize this, it passes through
       }
 
-      expect(mockInfluencersRepo.list).toHaveBeenCalledWith({
-        page: 0,
-        limit: 5,
-        search: undefined,
-      });
+      expect(mockInfluencersRepo.list).toHaveBeenCalledWith(new BaseSpecification<Influencer>().paginate({ page: 0, limit: 5 }));
     });
   });
 });

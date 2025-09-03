@@ -1,17 +1,25 @@
-import { IInfluencersRepo } from '../../../domain/repositories/influencers-repo';
 import { ListInfluencersInput, InfluencerOutput } from '../../dto/influencer.dto';
 import { Result, ok } from '../../common/result';
 import { PaginationResult, createPaginationMeta } from '../../common/pagination';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { Influencer } from '../../../domain/entities/influencer';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 export class ListInfluencersUseCase {
   constructor(
-    private readonly influencersRepo: IInfluencersRepo,
+    private readonly influencersRepo: IBaseRepository<Influencer, number>,
   ) {}
 
   async execute(input: ListInfluencersInput = {}): Promise<Result<PaginationResult<InfluencerOutput>>> {
     const { page = 1, limit = 20, search } = input;
 
-    const result = await this.influencersRepo.list({ page, limit, search });
+    const spec = new BaseSpecification<Influencer>();
+    if (search) {
+      spec.searchIn(['username', 'email', 'nameEn', 'nameAr'], search);
+    }
+    spec.paginate({ page, limit });
+
+    const result = await this.influencersRepo.list(spec);
 
     const influencerOutputs: InfluencerOutput[] = result.data.map(influencer => ({
       id: influencer.id,

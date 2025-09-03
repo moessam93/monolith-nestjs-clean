@@ -1,13 +1,14 @@
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
 import { CreateBrandInput, BrandOutput } from '../../dto/brand.dto';
 import { Result, ok } from '../../common/result';
 import { Brand } from '../../../domain/entities/brand';
 import { BrandNameAlreadyExistsError } from '../../../domain/errors/brand-errors';
 import { err } from '../../common/result';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { BaseSpecification } from '../../../domain/specifications/base-specification';
 
 export class CreateBrandUseCase {
   constructor(
-    private readonly brandsRepo: IBrandsRepo,
+    private readonly brandsRepo: IBaseRepository<Brand, number>,
   ) {}
 
   async execute(input: CreateBrandInput): Promise<Result<BrandOutput, BrandNameAlreadyExistsError>> {
@@ -15,12 +16,12 @@ export class CreateBrandUseCase {
 
 
     // Check if brand name already exists
-    const existingBrandNameEn = await this.brandsRepo.findByName(nameEn);
+    const existingBrandNameEn = await this.brandsRepo.findOne(new BaseSpecification<Brand>().whereEqual('nameEn', nameEn));
     if (existingBrandNameEn) {
       return err(new BrandNameAlreadyExistsError(nameEn));
     }
 
-    const existingBrandNameAr = await this.brandsRepo.findByName(nameAr);
+    const existingBrandNameAr = await this.brandsRepo.findOne(new BaseSpecification<Brand>().whereEqual('nameAr', nameAr));
     if (existingBrandNameAr) {
       return err(new BrandNameAlreadyExistsError(nameAr));
     }

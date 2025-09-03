@@ -1,21 +1,25 @@
 import { CreateBrandUseCase } from './create-brand.usecase';
-import { IBrandsRepo } from '../../../domain/repositories/brands-repo';
+import { IBaseRepository } from '../../../domain/repositories/base-repo';
 import { Brand } from '../../../domain/entities/brand';
 import { isOk } from '../../common/result';
 
 describe('CreateBrandUseCase', () => {
   let createBrandUseCase: CreateBrandUseCase;
-  let mockBrandsRepo: jest.Mocked<IBrandsRepo>;
+  let mockBrandsRepo: jest.Mocked<IBaseRepository<Brand, number>>;
 
   beforeEach(() => {
     mockBrandsRepo = {
-      findById: jest.fn(),
+      findMany: jest.fn(),
+      findOne: jest.fn(),
       list: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       exists: jest.fn(),
-      findByName: jest.fn(),
+      count: jest.fn(),
+      createMany: jest.fn(),
+      updateMany: jest.fn(),
+      deleteMany: jest.fn(),
     };
 
     createBrandUseCase = new CreateBrandUseCase(mockBrandsRepo);

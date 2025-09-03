@@ -1,13 +1,19 @@
 import { Beat } from '../../../../domain/entities/beat';
 import { BaseMapper } from './base.mapper';
+import { InfluencerMapper } from './influencer.mapper';
+import { BrandMapper } from './brand.mapper';
 
 export class BeatMapper {
   // Using generic methods for maximum code reuse
   static toDomain(prismaBeat: any): Beat {
-    return BaseMapper.genericToDomain(
+    return BaseMapper.genericToDomainWithProcessors(
       Beat,
       prismaBeat,
-      ['id', 'caption', 'mediaUrl', 'thumbnailUrl', 'statusKey', 'influencerId', 'brandId', 'createdAt', 'updatedAt']
+      ['id', 'caption', 'mediaUrl', 'thumbnailUrl', 'statusKey', 'influencerId', 'brandId', 'createdAt', 'updatedAt', 'influencer', 'brand'],
+      {
+        influencer: (influencerData: any) => influencerData ? InfluencerMapper.toDomain(influencerData) : undefined,
+        brand: (brandData: any) => brandData ? BrandMapper.toDomain(brandData) : undefined
+      }
     );
   }
 
