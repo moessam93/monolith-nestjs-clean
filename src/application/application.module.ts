@@ -42,12 +42,12 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
       provide: TOKENS.LoginUseCase,
       useFactory: (usersRepo: any, rolesRepo: any, passwordHasher: any, tokenSigner: any) =>
         new LoginUseCase( usersRepo, rolesRepo, passwordHasher, tokenSigner),
-      inject: [TOKENS.UsersRepo, TOKENS.PasswordHasher, TOKENS.TokenSigner],
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo, TOKENS.PasswordHasher, TOKENS.TokenSigner],
     },
     {
       provide: TOKENS.ValidateUserUseCase,
       useFactory: (usersRepo: any, rolesRepo: any) => new ValidateUserUseCase(usersRepo, rolesRepo),
-      inject: [TOKENS.UsersRepo],
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
     },
     
     // User Use Cases
@@ -55,7 +55,7 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
       provide: TOKENS.CreateUserUseCase,
       useFactory: (unitOfWork: any, passwordHasher: any, rolesRepo: any, userRolesRepo: any) =>
         new CreateUserUseCase(unitOfWork, passwordHasher, rolesRepo, userRolesRepo),
-      inject: [TOKENS.UnitOfWork, TOKENS.PasswordHasher],
+      inject: [TOKENS.UnitOfWork, TOKENS.PasswordHasher, TOKENS.RolesRepo, TOKENS.UserRolesRepo],
     },
     {
       provide: TOKENS.ListUsersUseCase,
