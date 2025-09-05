@@ -40,21 +40,21 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     // Auth Use Cases
     {
       provide: TOKENS.LoginUseCase,
-      useFactory: (usersRepo: any, passwordHasher: any, tokenSigner: any) =>
-        new LoginUseCase(usersRepo, passwordHasher, tokenSigner),
+      useFactory: (usersRepo: any, rolesRepo: any, passwordHasher: any, tokenSigner: any) =>
+        new LoginUseCase( usersRepo, rolesRepo, passwordHasher, tokenSigner),
       inject: [TOKENS.UsersRepo, TOKENS.PasswordHasher, TOKENS.TokenSigner],
     },
     {
       provide: TOKENS.ValidateUserUseCase,
-      useFactory: (usersRepo: any) => new ValidateUserUseCase(usersRepo),
+      useFactory: (usersRepo: any, rolesRepo: any) => new ValidateUserUseCase(usersRepo, rolesRepo),
       inject: [TOKENS.UsersRepo],
     },
     
     // User Use Cases
     {
       provide: TOKENS.CreateUserUseCase,
-      useFactory: (unitOfWork: any, passwordHasher: any) =>
-        new CreateUserUseCase(unitOfWork, passwordHasher),
+      useFactory: (unitOfWork: any, passwordHasher: any, rolesRepo: any, userRolesRepo: any) =>
+        new CreateUserUseCase(unitOfWork, passwordHasher, rolesRepo, userRolesRepo),
       inject: [TOKENS.UnitOfWork, TOKENS.PasswordHasher],
     },
     {
@@ -64,8 +64,8 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.UpdateUserUseCase,
-      useFactory: (unitOfWork: any) => new UpdateUserUseCase(unitOfWork),
-      inject: [TOKENS.UnitOfWork],
+      useFactory: (usersRepo: any, rolesRepo: any) => new UpdateUserUseCase(usersRepo, rolesRepo),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo],
     },
     {
       provide: TOKENS.AssignRolesUseCase,
@@ -154,8 +154,8 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.DeleteInfluencerUseCase,
-      useFactory: (influencersRepo: any) => new DeleteInfluencerUseCase(influencersRepo),
-      inject: [TOKENS.InfluencersRepo],
+      useFactory: (influencersRepo: any, beatsRepo: any) => new DeleteInfluencerUseCase(influencersRepo, beatsRepo),
+      inject: [TOKENS.InfluencersRepo, TOKENS.BeatsRepo],
     },
     {
       provide: TOKENS.ManageSocialPlatformUseCase,
