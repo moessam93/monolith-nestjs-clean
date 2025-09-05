@@ -2,6 +2,7 @@ export const TOKENS = {
   // Repositories
   UsersRepo: Symbol('UsersRepo'),
   RolesRepo: Symbol('RolesRepo'),
+  UserRolesRepo: Symbol('UserRolesRepo'),
   BeatsRepo: Symbol('BeatsRepo'),
   BrandsRepo: Symbol('BrandsRepo'),
   InfluencersRepo: Symbol('InfluencersRepo'),

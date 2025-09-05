@@ -53,9 +53,9 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     // User Use Cases
     {
       provide: TOKENS.CreateUserUseCase,
-      useFactory: (unitOfWork: any, passwordHasher: any, rolesRepo: any, userRolesRepo: any) =>
-        new CreateUserUseCase(unitOfWork, passwordHasher, rolesRepo, userRolesRepo),
-      inject: [TOKENS.UnitOfWork, TOKENS.PasswordHasher, TOKENS.RolesRepo, TOKENS.UserRolesRepo],
+      useFactory: (usersRepo: any, rolesRepo: any, userRolesRepo: any, passwordHasher: any) =>
+        new CreateUserUseCase(usersRepo, rolesRepo, userRolesRepo, passwordHasher),
+      inject: [TOKENS.UsersRepo, TOKENS.RolesRepo, TOKENS.UserRolesRepo, TOKENS.PasswordHasher],
     },
     {
       provide: TOKENS.ListUsersUseCase,

@@ -10,6 +10,7 @@ import { PrismaUnitOfWork } from './orm/prisma/uow/prisma.uow';
 // Repositories
 import { PrismaUsersRepo } from './orm/prisma/repositories/prisma-users.repo';
 import { PrismaRolesRepo } from './orm/prisma/repositories/prisma-roles.repo';
+import { PrismaUserRolesRepo } from './orm/prisma/repositories/prisma-userroles.repo';
 import { PrismaBeatsRepo } from './orm/prisma/repositories/prisma-beats.repo';
 import { PrismaBrandsRepo } from './orm/prisma/repositories/prisma-brands.repo';
 import { PrismaInfluencersRepo } from './orm/prisma/repositories/prisma-influencers.repo';
@@ -90,6 +91,10 @@ import { SystemClock } from './common/system-clock';
       useClass: PrismaRolesRepo,
     },
     {
+      provide: TOKENS.UserRolesRepo,
+      useClass: PrismaUserRolesRepo,
+    },
+    {
       provide: TOKENS.BeatsRepo,
       useClass: PrismaBeatsRepo,
     },
@@ -126,6 +131,7 @@ import { SystemClock } from './common/system-clock';
     TOKENS.RolesRepo,
     TOKENS.BeatsRepo,
     TOKENS.BrandsRepo,
+    TOKENS.UserRolesRepo,
     TOKENS.InfluencersRepo,
     TOKENS.SocialPlatformsRepo,
     TOKENS.PasswordHasher,
