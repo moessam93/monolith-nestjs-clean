@@ -3,13 +3,22 @@ import { Influencer } from '../../../domain/entities/influencer';
 import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { isOk, isErr } from '../../common/result';
 import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { ActivityLoggerPort } from '../../ports/activity-logger.port';
 
 describe('CreateInfluencerUseCase', () => {
   let createInfluencerUseCase: CreateInfluencerUseCase;
   let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
   let mockSocialPlatformsRepo: jest.Mocked<IBaseRepository<SocialPlatform, number>>;
+  let mockActivityLogger: jest.Mocked<ActivityLoggerPort>;
 
   beforeEach(() => {
+    mockActivityLogger = {
+      processAndSendActivityLogMessage: jest.fn(),
+      logCreate: jest.fn(),
+      logUpdate: jest.fn(),
+      logDelete: jest.fn(),
+    };
+
     mockInfluencersRepo = {
       findMany: jest.fn(),
       findOne: jest.fn(),
@@ -41,6 +50,7 @@ describe('CreateInfluencerUseCase', () => {
     createInfluencerUseCase = new CreateInfluencerUseCase(
       mockInfluencersRepo,
       mockSocialPlatformsRepo,
+      mockActivityLogger,
     );
   });
 

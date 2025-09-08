@@ -5,11 +5,13 @@ import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { ExistingSocialPlatformForInfluencerError, InfluencerUsernameAlreadyExistsError} from '../../../domain/errors/influencer-errors';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
 import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { ActivityLoggerPort } from '../../ports/activity-logger.port';
 
 export class CreateInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IBaseRepository<Influencer, number>,
     private readonly socialPlatformsRepo: IBaseRepository<SocialPlatform, number>,
+    private readonly activityLogger: ActivityLoggerPort,
   ) {}
 
   async execute(input: CreateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerUsernameAlreadyExistsError | ExistingSocialPlatformForInfluencerError>> {
@@ -62,6 +64,7 @@ export class CreateInfluencerUseCase {
       createdSocialPlatforms.push(createdSP);
     }
 
+    await this.activityLogger.logCreate('influencer', createdInfluencer.id, createdInfluencer);
     return ok({
       id: createdInfluencer.id,
       username: createdInfluencer.username,

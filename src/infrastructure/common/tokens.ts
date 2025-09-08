@@ -15,7 +15,8 @@ export const TOKENS = {
   PasswordHasher: Symbol('PasswordHasher'),
   TokenSigner: Symbol('TokenSigner'),
   Clock: Symbol('Clock'),
-  
+  ActivityLogger: Symbol('ActivityLogger'),
+
   // Use Cases - Auth
   LoginUseCase: Symbol('LoginUseCase'),
   ValidateUserUseCase: Symbol('ValidateUserUseCase'),

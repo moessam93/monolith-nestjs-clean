@@ -20,6 +20,7 @@ import { PrismaSocialPlatformsRepo } from './orm/prisma/repositories/prisma-soci
 import { BcryptHasher } from './crypto/bcrypt.hasher';
 import { NestJwtSigner } from './tokens/jwt.signer';
 import { SystemClock } from './common/system-clock';
+import { ActivityLoggerService } from './activitylogs/activity-logger.service';
 
 @Module({
   imports: [
@@ -124,6 +125,10 @@ import { SystemClock } from './common/system-clock';
       provide: TOKENS.Clock,
       useClass: SystemClock,
     },
+    {
+      provide: TOKENS.ActivityLogger,
+      useClass: ActivityLoggerService,
+    },
   ],
   exports: [
     TOKENS.UnitOfWork,
@@ -137,6 +142,7 @@ import { SystemClock } from './common/system-clock';
     TOKENS.PasswordHasher,
     TOKENS.TokenSigner,
     TOKENS.Clock,
+    TOKENS.ActivityLogger,
   ],
 })
 export class InfrastructureModule {}

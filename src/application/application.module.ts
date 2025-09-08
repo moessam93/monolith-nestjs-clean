@@ -133,9 +133,9 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     // Influencer Use Cases
     {
       provide: TOKENS.CreateInfluencerUseCase,
-      useFactory: (influencersRepo: any, socialPlatformsRepo: any) =>
-        new CreateInfluencerUseCase(influencersRepo, socialPlatformsRepo),
-      inject: [TOKENS.InfluencersRepo, TOKENS.SocialPlatformsRepo],
+      useFactory: (influencersRepo: any, socialPlatformsRepo: any, activityLogger: any) =>
+        new CreateInfluencerUseCase(influencersRepo, socialPlatformsRepo, activityLogger),
+      inject: [TOKENS.InfluencersRepo, TOKENS.SocialPlatformsRepo, TOKENS.ActivityLogger],
     },
     {
       provide: TOKENS.ListInfluencersUseCase,
