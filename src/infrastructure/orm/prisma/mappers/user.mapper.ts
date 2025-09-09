@@ -1,5 +1,6 @@
 import { User } from '../../../../domain/entities/user';
 import { BaseMapper } from './base.mapper';
+import { UserRolesMapper } from './userroles.mapper';
 
 export class UserMapper {
   static toDomain(prismaUser: any): User {
@@ -10,7 +11,7 @@ export class UserMapper {
       {
         userRoles: (userRolesArray: any[]) => 
           (userRolesArray ?? [])
-            .map((userRole: any) => userRole.role?.key)
+            .map((userRole: any) => UserRolesMapper.toDomain(userRole))
             .filter(Boolean)
       }
     );

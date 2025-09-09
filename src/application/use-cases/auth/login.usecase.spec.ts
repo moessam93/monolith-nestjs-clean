@@ -67,7 +67,8 @@ describe('LoginUseCase', () => {
   describe('execute', () => {
     it('should return login output when credentials are valid', async () => {
       // Arrange
-      const userRole = new UserRole(1, 'user-123', 1);
+      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
+      const userRole = new UserRole(1, 'user-123', 1, adminRole); // Include the full role object
       const mockUser = new User(
         'user-123',
         'John Doe',
@@ -79,8 +80,6 @@ describe('LoginUseCase', () => {
         new Date(),
         new Date(),
       );
-
-      const adminRole = new Role(1, 'Admin', 'Administrator', 'المدير');
 
       const input = {
         email: 'john@example.com',
@@ -125,7 +124,7 @@ describe('LoginUseCase', () => {
           sub: 'user-123',
           email: 'john@example.com',
           name: 'John Doe',
-          roles: [userRole],
+          roles: ['Admin'], // Now expects role keys instead of UserRole objects
         },
         { expiresIn: '1h' }
       );

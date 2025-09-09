@@ -41,20 +41,19 @@ export class LoginUseCase {
       sub: user.id,
       email: user.email,
       name: user.name,
-      roles: user.userRoles,
+      roles: user.userRoles.map(ur => ur.role?.key).filter(Boolean), // Extract role keys for JWT
     };
 
     const { token, exp } = await this.tokenSigner.sign(payload, { expiresIn });
 
     // Calculate expiration date
     const expiredAt = exp ? new Date(exp * 1000) : new Date(Date.now() + 60 * 60 * 1000); // fallback to 1 hour
-    const roleDetails = await this.rolesRepo.findMany(new BaseSpecification<Role>().whereIn('id', user.userRoles.map(ur => ur.roleId)));
 
     return ok({
       id: user.id,
       email: user.email,
       name: user.name,
-      roles: roleDetails.map(role => ({id: role.id, nameEn: role.nameEn, nameAr: role.nameAr, key: role.key})),
+      roles: user.userRoles.map(ur => ({id: ur.role?.id, nameEn: ur.role?.nameEn, nameAr: ur.role?.nameAr, key: ur.role?.key})),
       access_token: token,
       expiredAt,
     });

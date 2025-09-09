@@ -48,6 +48,10 @@ import { NonIdempotentHandlerMiddleware } from './http/middleware/non-idempotent
         JWT_SECRET: Joi.string().optional(), // For development fallback
         // Bcrypt Configuration
         BCRYPT_SALT_ROUNDS: Joi.number().default(12),
+        // Activity Logging & Pub/Sub Configuration
+        ACTIVITY_LOGGING_ENABLED: Joi.boolean().default(true),
+        PUBSUB_PROJECT_ID: Joi.string().optional(),
+        PUBSUB_TOPIC_ID: Joi.string().optional(),
       }),
     }),
     PassportModule,

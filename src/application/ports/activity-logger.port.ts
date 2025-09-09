@@ -2,6 +2,8 @@ export interface ActivityLog {
     entityType: string;
     entityId: string | number;
     action: 'POST' | 'PUT' | 'DELETE';
+    userId?: string;
+    userName?: string;
     recordBefore?: Record<string, any>;
     recordAfter?: Record<string, any>;
     createdAt: Date;

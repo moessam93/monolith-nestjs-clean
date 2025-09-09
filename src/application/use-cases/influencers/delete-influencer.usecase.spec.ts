@@ -6,12 +6,21 @@ import { isOk, isErr } from '../../common/result';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
 import { IBaseRepository } from '../../../domain/repositories/base-repo';
 import { Beat } from '../../../domain/entities/beat';
+import { ActivityLoggerPort } from '../../ports/activity-logger.port';
 
 describe('DeleteInfluencerUseCase', () => {
   let deleteInfluencerUseCase: DeleteInfluencerUseCase;
   let mockInfluencersRepo: jest.Mocked<IBaseRepository<Influencer, number>>;
   let mockBeatsRepo: jest.Mocked<IBaseRepository<Beat, number>>;
+  let mockActivityLogger: jest.Mocked<ActivityLoggerPort>;
+
   beforeEach(() => {
+    mockActivityLogger = {
+      processAndSendActivityLogMessage: jest.fn(),
+      logCreate: jest.fn(),
+      logUpdate: jest.fn(),
+      logDelete: jest.fn(),
+    };
     mockInfluencersRepo = {
       findMany: jest.fn(),
       findOne: jest.fn(),
@@ -40,7 +49,7 @@ describe('DeleteInfluencerUseCase', () => {
       deleteMany: jest.fn(),
     };
 
-    deleteInfluencerUseCase = new DeleteInfluencerUseCase(mockInfluencersRepo, mockBeatsRepo);
+    deleteInfluencerUseCase = new DeleteInfluencerUseCase(mockInfluencersRepo, mockBeatsRepo, mockActivityLogger);
   });
 
   describe('execute', () => {

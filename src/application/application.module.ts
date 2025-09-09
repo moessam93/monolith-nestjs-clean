@@ -149,13 +149,13 @@ import { ManageSocialPlatformUseCase } from './use-cases/influencers/manage-soci
     },
     {
       provide: TOKENS.UpdateInfluencerUseCase,
-      useFactory: (influencersRepo: any, socialPlatformsRepo: any) => new UpdateInfluencerUseCase(influencersRepo, socialPlatformsRepo),
-      inject: [TOKENS.InfluencersRepo, TOKENS.SocialPlatformsRepo],
+      useFactory: (influencersRepo: any, socialPlatformsRepo: any, activityLogger: any) => new UpdateInfluencerUseCase(influencersRepo, socialPlatformsRepo, activityLogger),
+      inject: [TOKENS.InfluencersRepo, TOKENS.SocialPlatformsRepo, TOKENS.ActivityLogger],
     },
     {
       provide: TOKENS.DeleteInfluencerUseCase,
-      useFactory: (influencersRepo: any, beatsRepo: any) => new DeleteInfluencerUseCase(influencersRepo, beatsRepo),
-      inject: [TOKENS.InfluencersRepo, TOKENS.BeatsRepo],
+      useFactory: (influencersRepo: any, beatsRepo: any, activityLogger: any) => new DeleteInfluencerUseCase(influencersRepo, beatsRepo, activityLogger),
+      inject: [TOKENS.InfluencersRepo, TOKENS.BeatsRepo, TOKENS.ActivityLogger],
     },
     {
       provide: TOKENS.ManageSocialPlatformUseCase,

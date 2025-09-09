@@ -5,11 +5,13 @@ import { SocialPlatform } from '../../../domain/entities/social-platform';
 import { BaseSpecification } from '../../../domain/specifications/base-specification';
 import { Influencer } from '../../../domain/entities/influencer';
 import { IBaseRepository } from '../../../domain/repositories/base-repo';
+import { ActivityLoggerPort } from '../../ports/activity-logger.port';
 
 export class UpdateInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IBaseRepository<Influencer, number>,
     private readonly socialPlatformsRepo: IBaseRepository<SocialPlatform, number>,
+    private readonly activityLogger: ActivityLoggerPort,
   ) {}
 
   async execute(input: UpdateInfluencerInput): Promise<Result<InfluencerOutput, InfluencerNotFoundError | InfluencerUsernameAlreadyExistsError | InfluencerEmailAlreadyExistsError | ExistingSocialPlatformForInfluencerError>> {
@@ -95,6 +97,8 @@ export class UpdateInfluencerUseCase {
     }
     // Save updated influencer
     const updatedInfluencer = await this.influencersRepo.update(influencer);
+
+    await this.activityLogger.logUpdate('influencer', id, influencer, updatedInfluencer);
 
     return ok({
       id: updatedInfluencer.id,

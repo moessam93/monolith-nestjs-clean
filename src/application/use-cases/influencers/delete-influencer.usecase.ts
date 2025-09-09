@@ -4,11 +4,13 @@ import { BaseSpecification } from '../../../domain/specifications/base-specifica
 import { Influencer } from '../../../domain/entities/influencer';
 import { IBaseRepository } from '../../../domain/repositories/base-repo';
 import { Beat } from '../../../domain/entities/beat';
+import { ActivityLoggerPort } from '../../ports/activity-logger.port';
 
 export class DeleteInfluencerUseCase {
   constructor(
     private readonly influencersRepo: IBaseRepository<Influencer, number>,
     private readonly beatsRepo: IBaseRepository<Beat, number>,
+    private readonly activityLogger: ActivityLoggerPort,
   ) {}
 
   async execute(id: number): Promise<Result<void, InfluencerNotFoundError | InfluencerHasBeatsError>> {
@@ -26,6 +28,8 @@ export class DeleteInfluencerUseCase {
 
     // Delete influencer (social platforms will be cascade deleted)
     await this.influencersRepo.delete(id);
+
+    await this.activityLogger.logDelete('influencer', id);
 
     return ok(undefined);
   }

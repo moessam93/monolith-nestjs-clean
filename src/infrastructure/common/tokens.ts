@@ -16,6 +16,7 @@ export const TOKENS = {
   TokenSigner: Symbol('TokenSigner'),
   Clock: Symbol('Clock'),
   ActivityLogger: Symbol('ActivityLogger'),
+  RequestContextService: Symbol('RequestContextService'),
 
   // Use Cases - Auth
   LoginUseCase: Symbol('LoginUseCase'),

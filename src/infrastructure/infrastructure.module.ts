@@ -21,6 +21,7 @@ import { BcryptHasher } from './crypto/bcrypt.hasher';
 import { NestJwtSigner } from './tokens/jwt.signer';
 import { SystemClock } from './common/system-clock';
 import { ActivityLoggerService } from './activitylogs/activity-logger.service';
+import { RequestContextService } from './common/request-context.service';
 
 @Module({
   imports: [
@@ -129,6 +130,10 @@ import { ActivityLoggerService } from './activitylogs/activity-logger.service';
       provide: TOKENS.ActivityLogger,
       useClass: ActivityLoggerService,
     },
+    {
+      provide: TOKENS.RequestContextService,
+      useClass: RequestContextService,
+    },
   ],
   exports: [
     TOKENS.UnitOfWork,
@@ -143,6 +148,7 @@ import { ActivityLoggerService } from './activitylogs/activity-logger.service';
     TOKENS.TokenSigner,
     TOKENS.Clock,
     TOKENS.ActivityLogger,
+    TOKENS.RequestContextService,
   ],
 })
 export class InfrastructureModule {}

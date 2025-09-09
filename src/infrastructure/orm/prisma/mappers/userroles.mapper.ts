@@ -1,12 +1,16 @@
 import { UserRole } from '../../../../domain/entities/user-role';
 import { BaseMapper } from './base.mapper';
+import { RoleMapper } from './role.mapper';
 
 export class UserRolesMapper {
   static toDomain(prismaUserRole: any): UserRole {
-    return BaseMapper.genericToDomain(
+    return BaseMapper.genericToDomainWithProcessors(
       UserRole,
       prismaUserRole,
-      ['id', 'userId', 'roleId']
+      ['id', 'userId', 'roleId', 'role'],
+      {
+        role: (roleData: any) => roleData ? RoleMapper.toDomain(roleData) : undefined
+      }
     );
   }
 

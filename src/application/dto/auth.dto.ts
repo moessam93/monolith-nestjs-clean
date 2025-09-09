@@ -25,8 +25,8 @@ export interface UserValidationOutput {
 }
 
 export interface UserRoleOutput {
-  id: number;
-  nameEn: string;
-  nameAr: string;
-  key: string;
+  id?: number;
+  nameEn?: string;
+  nameAr?: string;
+  key?: string;
 }
